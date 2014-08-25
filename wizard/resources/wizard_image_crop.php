@@ -1,4 +1,5 @@
 <?php
+	
 	session_start();
 	if ($_SESSION['allowed']){
 		$courseID = $_SESSION['courseID'];
@@ -110,11 +111,13 @@
 					"images/" . $courseID.".".$extension);
 					
 					$size = getimagesize("images/".$courseID.".jpg");
-					$imageWidth = $size[0];
+					//E. Scull: Heigh and Width variables are accidentally reversed. Switched to appropriate array indexes:
 					$imageHeight = $size[1];
+					$imageWidth = $size[0];
+					//E. Scull: Added output of uploaded image size for usability, and debugging.
 					if ($imageHeight < '256' || $imageWidth < '860') {
-						echo '<div style="margin-left:20px;"><p>Image is too small. The minimum size is 860 x 256px.</p>
-							<a href="wizard_image_crop.php?task=selectImage" class="btn"><i class="fa fa-chevron-circle-left"></i> Pick New Image</a>';
+						echo "<div style='margin-left:20px;'><p>Image is too small ($imageWidth x $imageHeight px). The minimum size is 860 x 256px.</p>
+							<a href='wizard_image_crop.php?task=selectImage' class='btn'><i class='fa fa-chevron-circle-left'></i> Pick New Image</a>";
 							exit;
 					}
 			    	

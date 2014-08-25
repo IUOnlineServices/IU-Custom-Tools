@@ -29,7 +29,7 @@
 			require_once 'resources/wizardAPI.php';
 			// test token
 			$course = getCourse($_SESSION['courseID']);
-			var_dump($course);
+			//var_dump($course); //E. Scull: Commented out to prevent "headers already sent" error.
 			if (isset($course->errors[0]->message)){
 				$sql = DB::query("DELETE FROM tokens WHERE canvas_user_id = $canvasUserID AND domain = '$domain'");
 				$generateToken = true;
@@ -39,7 +39,7 @@
 			}
 		}
 		if ($generateToken == true) {
-			echo 'Generate Token';
+			//echo 'Generate Token'; //E. Scull: Commented out to prevent "headers already sent" error.
 			// if not, redirect to canvas permission page
 			header('Location: '.$_SESSION['canvasURL'].'/login/oauth2/auth?client_id='.$client_id.'&response_type=code&redirect_uri='.$_SESSION["template_wizard_url"].'/oauth2response.php');
 		} else {

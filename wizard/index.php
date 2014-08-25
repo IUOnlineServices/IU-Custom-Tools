@@ -1,3 +1,5 @@
+<?php 
+/*
 <!-- These tools were designed to facilitate rapid course development in the Canvas LMS
 Copyright (C) 2014  Kenneth Larsen - Center for Innovative Design and Instruction
 Utah State University
@@ -12,7 +14,10 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Affero General Public License for more details.
 http://www.gnu.org/licenses/agpl-3.0.html -->
-<?php 
+*/
+
+//E. Scull: Put above in php comment to prevent "headers already sent" errors.
+
 	// Display any php errors (for development purposes)
 	error_reporting(E_ALL);
 	ini_set('display_errors', '1');

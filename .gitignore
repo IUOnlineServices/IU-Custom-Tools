@@ -4,3 +4,11 @@ config.php
 js/tools_variables.js
 
 wizard/ltiCode.xml
+
+IU-Custom-Tools.sublime-project
+
+IU-Custom-Tools.sublime-workspace
+
+sftp-config.json
+
+sftp-config-alt.json
