@@ -20,11 +20,25 @@
 // Kenneth's Custom Canvas Tools //
 ///////////////////////////////////
 // Path to where the canvasCustomTools folder is located
-var klToolsPath = "https://<url>/kennethware-2.0/",
-    globalCSSPath = "https://<url>/canvasGlobal.css";
 
-	console.log('canvasGlobal.js loading');
-    //Parse Course Number - It is stored in the variable "coursenum"//
+//E. Scull - Add conditional logic to see if we're on test or live Canvas instance. Set URLs accordingly.
+var is_test_canvas = (window.location.href.lastIndexOf("https://iu.test.instructure.com", 0) === 0);
+console.log("In testing Canvas instance: " + is_test_canvas);
+var url_root = "";
+if(is_test_canvas){
+    //Development URL
+    url_root = "https://www.indiana.edu/~oidddev/";
+} else {
+    //Production URL
+    url_root = "https://www.indiana.edu/~oidd/";
+}
+
+
+var klToolsPath = url_root + "iu-tools/2.0/",
+    globalCSSPath = url_root + "iu-tools/2.0/canvasGlobal.css";
+
+console.log('canvasGlobal.js loading');
+//Parse Course Number - It is stored in the variable "coursenum"//
 var coursenum, matches, killspot;
 coursenum = null;
 matches = location.pathname.match(/\/courses\/(.*)/);
@@ -35,7 +49,6 @@ if (matches) {
         coursenum = coursenum.slice(0, killspot);
     }
 }
-
 
 (function () {
     'use strict';
@@ -77,7 +90,10 @@ if (matches) {
     }, 1000);
 
     // add css for font-awesome if a course is using any of their icons
-    if ($(".fa").length > 0) {
+    // E. Scull: Changed selector here to use class*='fa'. 
+    // Seemed to have trouble finding .fa in elements with multiple classes (i.e. <li class="fa fa-asterisk">)
+    // if ($(".fa").length > 0) {
+    if ($("[class*='fa']").length > 0) {
         $("head").append($("<link/>", { rel: "stylesheet", href: "//netdna.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.css?" + timestamp }));
     }
 
@@ -120,4 +136,15 @@ if (matches) {
             }, 1000);
         }
     }());
+
+
+    //E. Scull: If href="#", prevent click. This keeps page from jumping.
+    setTimeout(function () {
+        $( "a[href='#']" ).click( function(e) {
+          e.preventDefault();
+          //e.stopImmediatePropagation(); //this was added to keep a trigger's click from immediately closing popovers. Remove if causing other issues.
+       } );
+    }, 1000);
+
+   
 }());

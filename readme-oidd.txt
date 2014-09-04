@@ -1,13 +1,17 @@
 E. Scull - Modifications and IU Overrides to the USU Custom Tools
  
 
-Edits to the files to adapt them for use at IU are found in:
+Edits to the files to adapt them for use at IU are primarily found in:
   config.php
   canvasGlobal.css
+  canvasGlobal.js
+
+Modified the config.php and canvasGlobal.js to allow for conditional checks for dev/prod environments.
 
 Additional edits to apply minor fixes and corrections are noted by comments in the code
-beginning with "E. Scull: ". Searching for "Scull" will find these edits. See:
-  canvasGlobal.js
+beginning with "E. Scull: ". Searching for "Scull" will find these edits in various files.
+
+
 
 
 

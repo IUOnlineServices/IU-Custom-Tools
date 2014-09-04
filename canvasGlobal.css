@@ -282,7 +282,7 @@ font-family: FontAwesome !important;
 #kl_wrapper #kl_banner { margin-bottom: 20px;}
 
 /***** Accessibility Check *****/
-.kl_accessibility_color_check { filter: grayscale(100%); -webkit-filter: grayscale(100%); -moz-filter: grayscale(100%); -ms-filter: grayscale(100%); -o-filter: grayscale(100%); filter: url(desaturate.svg#grayscale); filter: gray; }
+.kl_accessibility_color_check { filter: grayscale(100%); -webkit-filter: grayscale(100%); -moz-filter: grayscale(100%); -ms-filter: grayscale(100%); -o-filter: grayscale(100%); filter: url(css/images/desaturate.svg#grayscale); filter: gray; }
 
 /***** Bookmark Template *****/
 #kl_wrapper.kl_bookmark { color: #0F2439; width: 100%; }
@@ -601,3 +601,249 @@ font-family: FontAwesome !important;
 @media screen and (max-width: 684px) {
   #kl_wrapper.kl_fp_horizontal_nav #kl_banner_image {height: 154px; } 
 }
+
+
+/******************************************************************/
+/* INDIANA UNIVERSITY STYLE OVERRIDES
+/******************************************************************/
+
+/* 
+Color replacements:
+
+#0F2439 (dark blue) 	=> #7D110C (crimson)
+#AC8D73 (gold) 			=> #E1D8B7 (cream)
+#A4AEB5 (slate gray)	=> #44697D (dark blue)
+#003366 (dark blue 2)	=> #7D110C (crimson)
+
+TODO: 
+- Remove any of the below styles that are unchanged from their definition above--only overrides below.
+
+NOTES:
+- paths to images/badge.png and images/bookmark.png corrected to canvasImages/badge.png and canvasImages/bookmark.png
+
+ */
+
+/***** Bookmark Template *****/
+#kl_wrapper.kl_bookmark #kl_banner { background-color: #7D110C; color: #FFF; width: 100%; height: 5.5em; font-family: "PT Sans"; margin-bottom:20px; width: 100%; display: block; }
+#kl_wrapper.kl_bookmark #kl_banner #kl_banner_left .kl_mod_num { background: url(canvasImages/bookmark.png) no-repeat left top; background-size: contain; width: 29px; height: 35px; color: #7D110C; margin: 1px auto; font-size: 0.8em; font-weight: bold; padding-top: 3px; text-align: center; display: block; line-height: 1em; }
+
+
+/***** Box_left Template *****/
+#kl_wrapper.kl_box_left #kl_banner_left { background: #7D110C; text-shadow: none; }
+#kl_wrapper.kl_box_left_2 #kl_banner_left { background: #E1D8B7; color: #444; text-shadow: none; -webkit-box-shadow: 1px 1px 1px #999; -moz-box-shadow: 1px 1px 1px #999; box-shadow: 1px 1px 1px #999; }
+#kl_wrapper.kl_box_left_3 #kl_banner_left { background: #44697D; }
+
+/***** Square_Right Template *****/
+#kl_wrapper.kl_square_right h2 { background: #7D110C; }
+#kl_wrapper.kl_square_right #kl_banner_left { background: #E1D8B7; color: #444; text-shadow: none; -webkit-box-shadow: none; -moz-box-shadow: none; box-shadow: none; }
+#kl_wrapper.kl_square_right_2 h2 { background: #E1D8B7; color: #444; }
+#kl_wrapper.kl_square_right_2 #kl_banner_left { background: #7D110C; text-shadow: none; -webkit-box-shadow: none; -moz-box-shadow: none; box-shadow: none; }
+#kl_wrapper.kl_square_right_3 h2 { background: #E1D8B7; color: #444; text-shadow: none; }
+#kl_wrapper.kl_square_right_3 #kl_banner_left { background: #44697D; text-shadow: none; -webkit-box-shadow: none; -moz-box-shadow: none; box-shadow: none; }
+
+
+/***** circle-left Template *****/
+#kl_wrapper.kl_circle_left #kl_banner { background: #E1D8B7; color: #444; -webkit-box-shadow: none; -moz-box-shadow: none; box-shadow: none; }
+#kl_wrapper.kl_circle_left #kl_banner_left { background: #44697D; color: #fff; -webkit-box-shadow: none; -moz-box-shadow: none; box-shadow: none; }
+#kl_wrapper.kl_circle_left #kl_banner_right { text-shadow: none; }
+#kl_wrapper.kl_circle_left_2 #kl_banner { background: #7D110C; -webkit-box-shadow: none; -moz-box-shadow: none; box-shadow: none; }
+#kl_wrapper.kl_circle_left_2 #kl_banner_left { background: #E1D8B7; text-shadow: none; -webkit-box-shadow: none; -moz-box-shadow: none; box-shadow: none; }
+#kl_wrapper.kl_circle_left_2 .kl_mod_num  { color: #444; }
+#kl_wrapper.kl_circle_left_3 #kl_banner { background: #E1D8B7; -webkit-box-shadow: none; -moz-box-shadow: none; box-shadow: none; }
+#kl_wrapper.kl_circle_left_3 #kl_banner_left { background: #7D110C; text-shadow: none; -webkit-box-shadow: none; -moz-box-shadow: none; box-shadow: none; }
+#kl_wrapper.kl_circle_left_3 #kl_banner_right { color: #444; }
+
+
+/***** Rounded-Inset Template *****/
+#kl_wrapper.kl_rounded_inset #kl_banner { background: #7D110C; }
+#kl_wrapper.kl_rounded_inset_2 #kl_banner { background: #44697D; }
+#kl_wrapper.kl_rounded_inset_3 #kl_banner  { background: #E1D8B7; }
+#kl_wrapper.kl_rounded_inset_3 h2 { border: solid 1px #ddd; }
+
+
+/***** Apple Template *****/
+#kl_wrapper.kl_apple #kl_banner { background: #7D110C; }
+
+
+/***** EMTA Template *****/
+#kl_wrapper.kl_emta { color: #7D110C; }
+#kl_wrapper.kl_emta h3 { color: #7D110C; }
+#kl_wrapper.kl_emta h2 { background-color: #7D110C; color:#fff;}
+/*Remove badge bg graphic until a replacement is identified...*/
+/*#kl_wrapper.kl_emta #kl_banner #kl_banner_left .kl_mod_num{ background: url(canvasImages/badge.png) no-repeat left top; color:#fff; }*/
+#kl_wrapper.kl_emta #kl_banner #kl_banner_left .kl_mod_num{ background: none; color:#fff; }
+#kl_wrapper.kl_emta #kl_banner #kl_banner_bottom { background: #efebdc; }
+
+
+
+
+
+
+/*************************/
+/* Front Page Templates  */
+/*************************/
+
+/* Banner Image */
+#kl_wrapper #kl_banner_image.kl_banner_placeholder {background: url(canvasImages/homePageBanner.jpg) no-repeat center center; }
+
+/* Modules Grid */
+#kl_wrapper #kl_modules {border-top: 2px solid #565656; border-bottom: 1px solid #b6babf; }
+#kl_wrapper #kl_modules ul li,
+#kl_wrapper #kl_modules ul li a, 
+#kl_wrapper #kl_modules ul li a:hover,
+#kl_wrapper #kl_modules ul li a:visited,
+#kl_wrapper #kl_modules ul li a:focus,
+#kl_wrapper #kl_modules ul li a:active {color: #565656; }
+#kl_wrapper #kl_modules .kl_current:before {color: #00BD03;}
+
+/* Default Navigation */
+#kl_wrapper #kl_navigation {background-color: #7D110C; color: #fff; }
+#kl_wrapper #kl_navigation li {background: url(canvasImages/divider.png) no-repeat 90% top; }
+#kl_wrapper #kl_navigation li a,
+#kl_wrapper #kl_navigation li a:hover,
+#kl_wrapper #kl_navigation li a:focus,
+#kl_wrapper #kl_navigation li a:visited { color: #fff; }
+
+/* Panel Nav Template: Responsive homepage banner with transparent nav panel over bg image *****/
+#kl_wrapper.kl_fp_panel_nav #kl_banner {background-color: #7D110C; color: #FFF; }
+#kl_wrapper.kl_fp_panel_nav #kl_banner #kl_banner_left {border-right: 5px solid #fff; }
+/* Navigation */
+#kl_wrapper.kl_fp_panel_nav #kl_navigation { background-color: rgba(255, 255, 255, 0.75); color: #7D110C; }
+#kl_wrapper.kl_fp_panel_nav #kl_navigation a:hover {color: #0088CC; }
+#kl_wrapper.kl_fp_panel_nav #kl_navigation li a {color: #003366;}	
+
+/***** Template: Responsive banner with horiz nav bar and modules grid *****/
+#kl_wrapper.kl_fp_horizontal_nav #kl_banner {background-color: #7D110C; color: #FFF; }
+#kl_wrapper.kl_fp_horizontal_nav #kl_banner #kl_banner_left {border-right: 5px solid #fff; }
+
+
+
+
+
+
+/* --------------------------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------------------------- */
+
+/* 
+
+Added by Erik Scull July 2014 to override blue buttons, accordion headers, etc. 
+
+Notes:
+#kl_tools is the id of the wrapper div for the right-column tools.
+#kl_wrapper is the id of the wrapper div for the content.
+
+*/
+
+/* Bump the font-size of everything in the Tools wrapper. */
+#kl_wrapper {
+	font-size:14px;
+}
+
+/* buttons */
+#kl_tools .btn-primary,
+#kl_wrapper .btn-primary {
+	background-color: #8C7EA6 !important;
+	background-image: linear-gradient(to bottom, #A79FBE, #8C7EA6) !important;
+}
+#kl_tools .btn-primary:hover, #kl_wrapper .btn-primary:hover, 
+#kl_tools .btn-primary:active, #kl_wrapper .btn-primary:active, 
+#kl_tools .btn-primary.active, #kl_wrapper .btn-primary.active, 
+#kl_tools .btn-primary.disabled, #kl_wrapper .btn-primary.disabled, 
+#kl_tools .btn-primary[disabled], #kl_wrapper .btn-primary[disabled]
+{
+	background-color: #8C7EA6 !important;
+	color: #FFFFFF !important;
+}
+
+/* Accordion header; not sure why this one uses the browser prefixes, while .btn-primary just uses the CSS3 linear-gradient(). But overriding all here, since I have to anyway for the IE9 filter. */
+#kl_wrapper .ui-state-active, 
+#kl_wrapper .ui-progressbar .ui-widget-header, 
+#kl_wrapper .ui-widget-header .ui-state-active, 
+#kl_wrapper .ui-widget-header .ui-progressbar .ui-widget-header, 
+#kl_wrapper .ui-progressbar .ui-widget-header .ui-widget-header {
+	border: 1px solid #8C7EA6;
+	background: #8C7EA6;
+	background-color: #8C7EA6;
+	background-image: -webkit-gradient(linear, left top, left bottom, from(#A79FBE), to(#8C7EA6));
+	background-image: -webkit-linear-gradient(top, #A79FBE, #8C7EA6);
+	background-image: -moz-linear-gradient(top, #A79FBE, #8C7EA6);
+	background-image: -ms-linear-gradient(top, #A79FBE, #8C7EA6);
+	background-image: -o-linear-gradient(top, #A79FBE, #8C7EA6);
+	background-image: linear-gradient(top, #A79FBE, #8C7EA6);
+	-ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorStr='#A79FBE',EndColorStr='#8C7EA6')";
+}
+
+/* adjust formatting of .ui-helper-reset and .ui-widget so that accordion/tab font styles are the same as other page text.*/ 
+.ui-helper-reset,
+.ui-widget {
+	font-size: inherit; /* was 100% */
+	line-height: inherit; /* was 1.3em */
+}
+
+/* Trying alert-info colors too, to go to a purple shade */
+.alert-info { text-shadow:none; background-color: #EDE8FF; border-color: #b4adca; color: #0E2439; /*color: #285e78;*/ }
+
+
+/* Change bg color and font color on visual labels in MCE editor (requires !important override off bg color) */
+.mce-visualSections .activities:before, 
+.mce-visualSections .assignments:before, 
+.mce-visualSections .lectures:before, 
+.mce-visualSections .objectives:before, 
+.mce-visualSections .readings:before, 
+.mce-visualSections .introduction:before, 
+#studentVerification:before, 
+#verificationInstructions:before, 
+#verificationSuccess:before, 
+.mce-visualSections .custom-accordion:before, 
+.mce-visualSections .custom-tabs:before, 
+.mce-visualSections .tabbed-section:before, 
+.mce-visualSections .custom-modal:before {
+	background: none repeat scroll 0 0 #CFBDFF !important;
+	color: #222 !important;
+	text-shadow: none !important;
+}
+
+/* Overrides of above to make purple */
+#usu_tools .btn.active, 
+#bloomsBox .btn.active, 
+#contentIconBox .btn.active, 
+#ideaBox .btn.active, 
+#tablesDialog .btn.active {
+	background: none repeat scroll 0 0 #8C7EA6;
+}
+
+/* Purple links? 
+a {
+	color:#764890;
+}
+a:hover {
+	color:#7A578E;
+}
+*/
+
+
+/* --------------------------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------------------------- */
+/*  E. Scull - Miscellaneous style tweaks and corrections */
+
+
+/*  
+When in "View Page History" view in Canvas, <article> content overlapped the right-column causing it not to be clickable.
+Even if the right col was visible, it was overlapped by an invisible 100% wide div making it not clickable. 
+Traced it to width of header image. Due to floating of <article>, the image was always able to extend it's max-width of 100% to its full width.
+Overriding float:left in https://iu.instructure.com/assets/common_legacy_normal_contrast.css seems to fix it; 
+Be on alert for uninteded layout breakage.
+*/
+ .pages.show.revisions .show-content { float:none; }
+
+
+/* Hide page title by default, preventing blinking on page load when using IU Tools. This means it must be added to the page manually. */
+h2.page-title {
+ 	display:none;
+ }
+
+/* Hide all popover h4 tags, since their text is pulled into the popover title by the JS. The JS looks to attempt to .remove() the h4, but it doesn't seem to work.  */
+
+.popover-content h4 {
+	display:none; 
+} 
