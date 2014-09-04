@@ -192,18 +192,18 @@ var klToolsVariables = {
         '   <h4>Canvas</h4>' +
         '   <p>Canvas is the where course content, grades, and communication will reside for this course.</p>' +
         '   <ul>' +
-        '       <li><a class="external" href="http://canvas.usu.edu/" target="_blank">http://canvas.usu.edu</a></li>' +
+        '       <li><a class="external" href="https://iu.instructure.com/" target="_blank">https://iu.instructure.com/</a></li>' +
         '       <ul>' +
-        '           <li>Your <strong>username</strong> is your <strong>A#</strong>, and your <strong>password</strong> is your global password (the same one you use for Banner or Aggiemail).</li>' +
+        '           <li>You will reach Canvas via CAS authentication, using your IU username and passphrase.</li>' +
         '       </ul>' +
-        '       <li>For <a class="external" href="http://canvas.usu.edu/" target="_blank">Canvas</a>,' +
-        '           <a class="external" href="https://id.usu.edu/Password/Help/#password" target="_blank">Passwords</a>,' +
-        '           or any other computer-related technical support contact the <a class="external" href="http://it.usu.edu/" target="_blank">IT Service Desk</a>.</li>' +
+        '       <li>For <a class="external" href="https://iu.instructure.com/" target="_blank">Canvas</a>,' +
+        '           <a class="external" href="https://kb.iu.edu/d/apdz" target="_blank">network IDs and passphrases</a>,' +
+        '           or any other computer-related technical support contact the <a class="external" href="https://kb.iu.edu/d/apgt" target="_blank">UITS Support Center</a>.</li>' +
         '       <ul>' +
-        '           <li>435 797-4357 (797-HELP)</li>' +
-        '           <li>877 878-8325</li>' +
-        '           <li><a class="external" href="http://it.usu.edu/" target="_blank">http://it.usu.edu</a></li>' +
-        '           <li><a href="mailto:servicedesk@usu.edu">servicedesk@usu.edu</a></li>' +
+        '           <li>Bloomington: 812-855-6789</li>' +
+        '           <li>Indianapolis: 317-274-4357</li>' + 
+        '           <li><a class="external" href="http://kb.iu.edu/" target="_blank">http://kb.iu.edu</a></li>' +
+        '           <li><a href="mailto:ithelp@iu.edu">ithelp@iu.edu</a></li>' +
         '       </ul>' +
         '   </ul>' +
         '</div>',
@@ -218,7 +218,7 @@ var klToolsVariables = {
         '   <p>The text for this class will be' +
         '       The Course Syllabus: A Learning-Centered Approach by O&rsquo;brein, Millis &amp; Cohen, second edition, published by Jossey-Bass, ISDN#047019617.&nbsp;<br />' +
         '       You may purchase this book at the' +
-        '       <a class="external" href="http://campusstore.usu.edu/" target="_blank">USU bookstore</a>&nbsp;or online.' +
+        '       <a class="external" href="#" target="_blank">IU bookstore</a>&nbsp;or online.' +
         '       Make sure you get the second edition!</p>' +
         '</div>',
     // Presentations
@@ -286,13 +286,13 @@ var klToolsVariables = {
         '   <h4>Syllabus Changes</h4>' +
         '   <p>This syllabus is subject to change. I will notify the class regarding all changes.' +
         '       In the event of any discrepancy between this syllabus and content found in Canvas,' +
-        '       the information in&nbsp;<strong>CANVAS WILL TAKE PRECENDENCE</strong>.</p>' +
+        '       the information in&nbsp;<strong>CANVAS WILL TAKE PRECEDENCE</strong>.</p>' +
         '</div>',
     // Submitting Electronic Files
     klSyllabusCourseSubmitFiles: '<div class="kl_syllabus_submitting_files" style="margin-left:10px;">' +
         '   <h4>Submitting Electronic Files</h4>' +
         '   <p>All electronic files must be submitted in word(.doc, .docx) or rich text file (.rtf) format, unless otherwise stated.' +
-        '       Please name your file in the using the following convention:&nbsp;<em>Assignmentname_Yourname.doc</em>.</p>' +
+        '       Please name your file using the following convention:&nbsp;<em>Assignmentname_Yourname.doc</em>.</p>' +
         '</div>',
     // Course Fees
     klSyllabusCourseFees: '<div class="kl_syllabus_course_fees" style="margin-left:10px;">' +
@@ -331,9 +331,9 @@ var klToolsVariables = {
         '       <p>Text of letter. Introduce yourself, describe how you got into this field and why you teach this class. Give a little insight as to why this course is important.' +
         '       Let the student know you are a human being invested in the course and in the student&ldquo;s success and get the student as excited as the student will permit himself or herself to be.</p>' +
         '       <p>First Last</p>' +
-        '       <p>First M. Last, Ph.D.<br />435-797-XXXX' +
-        '           | first.last@usu.edu' +
-        '           | website<br /><span style="font-size: 13px; line-height: 1.5;">Department<br /></span><span style="font-size: 13px; line-height: 1.5;">UMC Old Main Hill, Logan, UT 84322</span></p>' +
+        '       <p>First M. Last, Ph.D.<br />812-797-XXXX' +
+        '           | first.last@indiana.edu' +
+        '           | website<br /><span style="font-size: 13px; line-height: 1.5;">Department<br /></span><span style="font-size: 13px; line-height: 1.5;">123 Main St., Bloomington, IN 84322</span></p>' +
         '       <br />' +
         '       <p>&nbsp;</p>' +
         '       <p><em>Now, please follow the steps below to continue your orientation to this course.</em></p>' +
@@ -355,21 +355,21 @@ var klToolsVariables = {
         '   </div>' +
         '   <div id="Step_3">' +
         '       <h3 class="icon-search-address-book">Step 3: Library information and student support</h3>' +
-        '       <p>Visit the <a href="http://library.usu.edu/">library website</a> to learn <a href="http://distance.usu.edu/orientation/library/">what services are provided for online students</a>.</p>' +
+        '       <p>Visit the <a href="http://libraries.iub.edu/">library website</a> to learn <a href="https://kb.iu.edu/d/amdj">what services are provided for online students</a>.</p>' +
         '   </div>' +
         '   <div id="Step_4">' +
         '       <h3 class="icon-settings">Step 4: Read the technical requirements page</h3>' +
         '       <p>The <a href="http://guides.instructure.com/s/2204/m/4214/l/41056-which-browsers-does-canvas-support" target="_blank">Technical Requirements</a> page identifies the browsers, operating systems, and plugins that work best with Canvas.' +
         '       If you are new to Canvas quickly review the <a href="https://training.instructure.com/courses/347469/" target="_blank">Canvas Student Orientation</a> materials.</p>' +
         '   </div>' +
-        '   <div id="Step_5">' +
-        '       <h3 class="icon-info">Step 5: Read about academic integrity and netiquette</h3>' +
-        '       <p>All students at Utah State University agree on admission to abide by the university <em>Honor Code</em>.' +
-        '       Please review this <a title="Honor Pledge" href="/courses/' + coursenum + '/wiki/honor-pledge">Academic Integrity</a> tutorial to familiarize yourself with USU policies and procedures pertaining to the USU honor code.' +
-        '       This tutorial links to an additional, in-depth review on how to' +
-        '       <a title="Academic Dishonesty Defined" href="/courses/' + coursenum + '/wiki/academic-dishonesty-defined">avoid plagiarism and cite sources</a>, which you are strongly encouraged to review.' +
-        '       Also, please review the <a href="http://www.albion.com/netiquette/corerules.html" target="_blank">core rules of netiquette</a> for some guidelines and expectations on how to behave in an online learning environment.</p>' +
-        '   </div>' +
+        // '   <div id="Step_5">' +
+        // '       <h3 class="icon-info">Step 5: Read about academic integrity and netiquette</h3>' +
+        // '       <p>All students at Utah State University agree on admission to abide by the university <em>Honor Code</em>.' +
+        // '       Please review this <a title="Honor Pledge" href="/courses/' + coursenum + '/wiki/honor-pledge">Academic Integrity</a> tutorial to familiarize yourself with USU policies and procedures pertaining to the USU honor code.' +
+        // '       This tutorial links to an additional, in-depth review on how to' +
+        // '       <a title="Academic Dishonesty Defined" href="/courses/' + coursenum + '/wiki/academic-dishonesty-defined">avoid plagiarism and cite sources</a>, which you are strongly encouraged to review.' +
+        // '       Also, please review the <a href="http://www.albion.com/netiquette/corerules.html" target="_blank">core rules of netiquette</a> for some guidelines and expectations on how to behave in an online learning environment.</p>' +
+        // '   </div>' +
         '   <div id="Next_Steps">' +
         '       <h3 class="icon-module">Next Steps: Begin course content</h3>' +
         '   </div>' +
