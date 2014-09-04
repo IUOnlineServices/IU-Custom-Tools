@@ -37,8 +37,8 @@ if(is_test_canvas){
 var klToolsPath = url_root + "iu-tools/2.0/",
     globalCSSPath = url_root + "iu-tools/2.0/canvasGlobal.css";
 
-    console.log('canvasGlobal.js loading');
-    //Parse Course Number - It is stored in the variable "coursenum"//
+console.log('canvasGlobal.js loading');
+//Parse Course Number - It is stored in the variable "coursenum"//
 var coursenum, matches, killspot;
 coursenum = null;
 matches = location.pathname.match(/\/courses\/(.*)/);

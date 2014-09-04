@@ -119,7 +119,7 @@ var klToolsVariables = {
     klPagesModulesSection: '<div id="kl_modules">&nbsp;</div>',
     klPagesFooterSection: '<div id="kl_contact_footer">' +
         '   First Last, Ph.D. &nbsp;| ' +
-        '   &nbsp;first.last@usu.edu&nbsp; | ' +
+        '   &nbsp;username@indiana.edu&nbsp; | ' +
         '   &nbsp;Department<br />' +
         '   <span class="usu-copyright">Materials in this course may be copyright protected. Please do not distribute them without permission of the copyright holder.</span>' +
         '</div>',
@@ -136,8 +136,8 @@ var klToolsVariables = {
         '   <h4>Instructor</h4>' +
         '   <ul style="list-style-type: none;">' +
         '       <li>Teacher Name</li>' +
-        '       <li>797-1000</li>' +
-        '       <li>teacher@usu.edu</li>' +
+        '       <li>812-123-4567</li>' +
+        '       <li>teacher@indiana.edu</li>' +
         '   </ul>' +
         '   <h5>Office Hours</h5>' +
         '   <p>List hours</p>' +
@@ -145,8 +145,8 @@ var klToolsVariables = {
     klSyllabusAdditionalInstructor: '<div class="kl_syllabus_additional_instructor"><h4>Instructor</h4>' +
         '   <ul style="list-style-type: none;">' +
         '       <li>Teacher Name</li>' +
-        '       <li>797-1000</li>' +
-        '       <li>teacher@usu.edu</li>' +
+        '       <li>7812-123-4567</li>' +
+        '       <li>teacher@indiana.edu</li>' +
         '   </ul>' +
         '   <h5>Office Hours</h5>' +
         '   <p>List hours</p>' +
@@ -155,13 +155,13 @@ var klToolsVariables = {
     klSyllabusTeachingAssistants: '<div class="kl_syllabus_teaching_assistant" style="margin-left:10px;"><h4>Teaching Assistant</h4>' +
         '   <ul style="list-style-type: none;">' +
         '       <li>TA Name</li>' +
-        '       <li>ta@usu.edu</li>' +
+        '       <li>ta@indiana.edu</li>' +
         '   </ul>' +
         '</div>',
     klSyllabusAdditionalTeachingAssistant: '<div class="kl_syllabus_additional_teaching_assistant"><h4>Teaching Assistant</h4>' +
         '   <ul style="list-style-type: none;">' +
         '       <li>TA Name</li>' +
-        '       <li>ta@usu.edu</li>' +
+        '       <li>ta@indiana.edu</li>' +
         '   </ul>' +
         '</div>',
     // Course Description

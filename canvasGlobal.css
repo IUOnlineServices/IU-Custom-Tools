@@ -282,7 +282,7 @@ font-family: FontAwesome !important;
 #kl_wrapper #kl_banner { margin-bottom: 20px;}
 
 /***** Accessibility Check *****/
-.kl_accessibility_color_check { filter: grayscale(100%); -webkit-filter: grayscale(100%); -moz-filter: grayscale(100%); -ms-filter: grayscale(100%); -o-filter: grayscale(100%); filter: url(desaturate.svg#grayscale); filter: gray; }
+.kl_accessibility_color_check { filter: grayscale(100%); -webkit-filter: grayscale(100%); -moz-filter: grayscale(100%); -ms-filter: grayscale(100%); -o-filter: grayscale(100%); filter: url(css/images/desaturate.svg#grayscale); filter: gray; }
 
 /***** Bookmark Template *****/
 #kl_wrapper.kl_bookmark { color: #0F2439; width: 100%; }
