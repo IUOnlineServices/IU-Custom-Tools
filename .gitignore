@@ -5,6 +5,10 @@
 
 wizard/ltiCode.xml
 
+css/development.css
+
+wizard/devWizardLTI.xml
+
 IU-Custom-Tools.sublime-project
 
 IU-Custom-Tools.sublime-workspace
@@ -12,3 +16,6 @@ IU-Custom-Tools.sublime-workspace
 sftp-config.json
 
 sftp-config-alt.json
+
+
+

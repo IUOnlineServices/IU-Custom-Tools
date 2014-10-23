@@ -146,6 +146,24 @@ if (matches) {
         }
     }());
 
+    // Set users contact settings from link in syllabus Canvas Notification Preferences
+    if (task === "announcements_daily") {
+        setTimeout(function () {
+            $('td[data-category="announcement"]').trigger('mouseover');
+            $('td[data-category="announcement"]').find('.daily-label').first().trigger('click').trigger('mouseover');
+            $('.profile_settings').attr({'data-tooltip': 'right', 'title': 'Click here to update email address'}).trigger('mouseover');
+        }, 1000);
+    }
+    if (task === "announcements_asap") {
+        setTimeout(function () {
+            $('td[data-category="announcement"]').trigger('mouseover');
+            $('td[data-category="announcement"]').find('.immediately-label').first().trigger('click').trigger('mouseover');
+            $('.profile_settings').attr({'data-tooltip': 'right', 'title': 'Click here to update email address'}).trigger('mouseover');
+        }, 1000);
+    }
+
+
+
 
     //E. Scull: If href="#", prevent click. This keeps page from jumping.
     setTimeout(function () {
@@ -155,5 +173,4 @@ if (matches) {
        } );
     }, 1000);
 
-   
 }());
