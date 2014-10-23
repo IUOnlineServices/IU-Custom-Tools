@@ -5733,7 +5733,10 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         moduleListTool();
         socialMediaTool();
         // Other tools
-        accessibilityTools();
+        //E. Scull: Disabling accessibility checker in Firefox due to risk of data loss due to Firefox's handling of the CSS3 filter 
+        //Rrenders a gray screen with no simple way to remove it, short of using browser's dev tools.
+        if(navigator.userAgent.toLowerCase().indexOf('firefox') == -1) 
+            accessibilityTools();
         accordionTabsTool();
         advancedListsTool();
         bordersAndSpacingTool();
