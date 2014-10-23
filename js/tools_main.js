@@ -27,6 +27,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         toolsToLoad,
         sectionsPanelDefault = false,
         assignmentsPage = false,
+        discussionsPage = false,
         // Basic shell to add into template
         templateShell = '<div id="kl_wrapper" class="kl_bookmark"></div>',
         // Bloom's Taxonomy for Objectives Section
@@ -68,7 +69,6 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             'create': bloomsRevisedCreate
         };
 
-
 /////////////////////////////////////////////////////////////
 //  SUPPORTING FUNCTIONS                                   //
 //  These functions are used throughout the various tools  //
@@ -78,7 +78,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
     function showPageTitle() {
         if ($('input#title').length > 0 && $('.kl_show_title').length === 0) {
             $('input#title').after(' <a href="#" class="btn kl_show_title" data-tooltip="top" title="Show this title as a heading above the page content">Show title</a>');
-            $('.kl_show_title').click(function (e) {
+            $('.kl_show_title').unbind("click").click(function (e) {
                 e.preventDefault();
                 if ($(this).hasClass('active')) {
                     $(this).removeClass('active').html('Show Title');
@@ -102,19 +102,21 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
                 timestamp =  +(new Date());
             $head.append($('<link/>', { rel: 'stylesheet', href: klToolsVariables.vendor_legacy_normal_contrast, type: 'text/css' }));
             $head.append($('<link/>', { rel: 'stylesheet', href: klToolsVariables.common_legacy_normal_contrast, type: 'text/css' }));
-            $head.append($('<link/>', { rel: 'stylesheet', href: klToolsPath + 'css/canvasMCEEditor.css?' + timestamp, type: 'text/css' }));
             $head.append($('<link/>', { rel: 'stylesheet', href: globalCSSPath + '?' + timestamp, type: 'text/css' }));
+            $head.append($('<link/>', { rel: 'stylesheet', href: klToolsPath + 'css/canvasMCEEditor.css?' + timestamp, type: 'text/css' }));
             $head.append($("<link/>", { rel: "stylesheet", href: "//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css"}));
             if ($(iframeID).contents().find('#kl_custom_css').length > 0) {
                 $head.append($('<link/>', { rel: 'stylesheet', href: '/courses/' + coursenum + '/file_contents/course%20files/global/css/style.css?' + timestamp, type: 'text/css' }));
             }
             $(iframeID).contents().find('body').css('background-image', 'none').addClass('kl_has_style');
-            $(iframeID).contents().find('head').append('<style>#kl_banner_image {background: url(/courses/' + coursenum + '/file_contents/course%20files/global/css/images/homePageBanner.jpg) no-repeat center center; }</style>');
+            // if ($(iframeID).contents().find('.kl_fp_panel_nav, .kl_fp_horizontal_nav').length > 0) {
+            //     $(iframeID).contents().find('head').append('<style>#kl_banner_image {background: url(/courses/' + coursenum + '/file_contents/course%20files/global/css/images/homePageBanner.jpg) no-repeat center center; }</style>');
+            // }
         }
     }
     function bannerImageCheck() {
         // Check to see if a banner image exists it will throw an error either way.
-        if ($('a:contains("Template Wizard")').length > 0) {
+        if ($(iframeID).contents().find('.kl_fp_panel_nav').length > 0 || $(iframeID).contents().find('.kl_fp_horizontal_nav').length > 0) {
             var wizardurl = $('a:contains("Template Wizard")').attr('href');
             $.ajax({
                 url: '/courses/' + coursenum + '/file_contents/course%20files/global/css/images/homePageBanner.jpg',
@@ -122,20 +124,50 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
                 error: function (xhr) {
                     if (xhr.status === 404) {
                         $(iframeID).contents().find('#kl_banner_image').addClass('kl_banner_placeholder');
-                        $('.kl_wizard_trigger').html('<i class="fa fa-picture-o"></i> Add Custom Banner').attr({'href': wizardurl, 'target': '_blank'});
                     } else {
                         $(iframeID).contents().find('#kl_banner_image').removeClass('kl_banner_placeholder');
-                        $('.kl_wizard_trigger').html('<i class="fa fa-picture-o"></i> Change Custom Banner').attr({'href': wizardurl, 'target': '_blank'});
                     }
                 }
             });
-            $('.kl_wizard_trigger').show();
-            $('.kl_wizard_notice').hide();
-        } else {
-            $('.kl_wizard_trigger').hide();
-            $('.kl_wizard_notice').show();
         }
     }
+    // check given element and parents to find target attribute color
+    function kl_getColor(jqueryElement, targetAttribute) {
+        // Is current element's targetAttribute color set?
+        var color = jqueryElement.css(targetAttribute);
+        if ((color !== 'rgba(0, 0, 0, 0)') && (color !== 'transparent')) {
+            // if so then return that color
+            return color;
+        }
+
+        // if not: are you at the body element?
+        if (jqueryElement.is("body")) {
+            // return known 'false' value
+            return false;
+        }
+        // call kl_getColor with parent item
+        return kl_getColor(jqueryElement.parent(), targetAttribute);
+    }
+    // Convert RGB color value to hexidecimal
+    function rgb2hex(rgb) {
+        rgb = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+        function hex(x) {
+            return ("0" + parseInt(x).toString(16)).slice(-2);
+        }
+        return "#" + hex(rgb[1]) + hex(rgb[2]) + hex(rgb[3]);
+    }
+    // Determine whether black or white text offers best contrast
+    function getContrastYIQ(hexcolor) {
+        var r = parseInt(hexcolor.substr(0, 2), 16),
+            g = parseInt(hexcolor.substr(2, 2), 16),
+            b = parseInt(hexcolor.substr(4, 2), 16),
+            yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+        return (yiq >= 128) ? 'black' : 'white';
+    }
+    function getContrast50(hexcolor) {
+        return (parseInt(hexcolor, 16) > 0xffffff / 2) ? 'black' : 'white';
+    }
+
     // Move the specified editor content to the top
     function scrollToElement(targetElement) {
         $(iframeID).contents().find(targetElement).get(0).scrollIntoView();
@@ -208,13 +240,13 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         $('a:contains("HTML Editor")').get(0).scrollIntoView();
     }
     function displayTypes() {
-        $('.kl_mce_section_view, .kl_mce_labels_view').click(function (e) {
+        $('.kl_mce_section_view, .kl_mce_labels_view').unbind("click").click(function (e) {
             e.preventDefault();
             $(this).toggleClass('active');
             $('.kl_mce_preview').removeClass('active');
             setDisplay();
         });
-        $('.kl_mce_preview').click(function (e) {
+        $('.kl_mce_preview').unbind("click").click(function (e) {
             e.preventDefault();
             $(this).addClass('active');
             $('.kl_mce_section_view, .kl_mce_labels_view').removeClass('active');
@@ -223,7 +255,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
     }
     // Cleans out all empty elements and elements containing only &nbsp;
     function removeEmpty() {
-        $('.kl_remove_empty').click(function (e) {
+        $('.kl_remove_empty').unbind("click").click(function (e) {
             e.preventDefault();
             $(iframeID).contents().find('h2, h3, h4, p, h3, li, ol, ul').each(function () {
                 var myContents = $.trim($(this).html());
@@ -271,7 +303,9 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
     // Initiate Color Pickers
     function initializeColorPicker(inputName, targetElement, attribute) {
         var chosenColor = '',
-            startingColor = $(iframeID).contents().find(targetElement).css(attribute);
+            startingColor = kl_getColor($(iframeID).contents().find(targetElement), attribute),
+            bgHex,
+            textColor;
         $(inputName).spectrum({
             color: startingColor,
             showAlpha: true,
@@ -286,6 +320,11 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
                 $(inputName).val(tinycolor);
                 chosenColor = $(inputName).val();
                 $(iframeID).contents().find(targetElement).css(attribute, chosenColor);
+                if (attribute === 'background-color') {
+                    bgHex = chosenColor.replace('#', '');
+                    textColor = getContrastYIQ(bgHex);
+                    $(iframeID).contents().find(targetElement).css('color', textColor);
+                }
                 $(iframeID).contents().find(targetElement).removeAttr('data-mce-style');
             }
         });
@@ -303,7 +342,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         } else {
             $(newSectionControls).appendTo('.kl_sections_list');
         }
-        $('.kl_delete_section').click(function (e) {
+        $('.kl_delete_section').unbind("click").click(function (e) {
             e.preventDefault();
             var sectionToRemove = $(this).attr('rel');
             $(this).parent('li').remove();
@@ -323,34 +362,34 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         // Styles that utilize the bottom banner div
     // Check and mark current theme in toolbar
     function currentPagesThemeCheck() {
-        if ($(iframeID).contents().find('#kl_wrapper').length > 0) {
-            var currentTheme = $(iframeID).contents().find('#kl_wrapper').attr('class');
-            $('#' + currentTheme).addClass('kl_active_theme');
-            $('.kl_theme_color_pickers').show();
-            initializeColorPicker('#kl_banner_background', '#kl_banner', 'background-color');
-            initializeColorPicker('#kl_banner_text', '#kl_banner', 'color');
-            initializeColorPicker('#kl_banner_heading_background', '#kl_banner h2', 'background');
-            initializeColorPicker('#kl_banner_heading_text', '#kl_banner h2', 'color');
-            initializeColorPicker('#kl_banner_left_background', '#kl_banner_left', 'background');
-            initializeColorPicker('#kl_banner_left_text', '#kl_banner_left', 'color');
-            initializeColorPicker('#kl_banner_type_background', '.kl_mod_text', 'background');
-            initializeColorPicker('#kl_banner_type_text', '.kl_mod_text', 'color');
-            initializeColorPicker('#kl_banner_title_background', '#kl_banner_right', 'background');
-            initializeColorPicker('#kl_banner_title_text', '#kl_banner_right', 'color');
-            initializeColorPicker('#kl_banner_num_background', '.kl_mod_num', 'background');
-            initializeColorPicker('#kl_banner_num_text', '.kl_mod_num', 'color');
-        }
+        addStyletoIframe();
         setTimeout(function () {
+            if ($(iframeID).contents().find('#kl_wrapper').length > 0) {
+                var currentTheme = $(iframeID).contents().find('#kl_wrapper').attr('class');
+                $('#' + currentTheme).addClass('kl_active_theme');
+                $('.kl_theme_color_pickers').show();
+                initializeColorPicker('#kl_banner_background', '#kl_banner', 'background-color');
+                initializeColorPicker('#kl_banner_text', '#kl_banner', 'color');
+                initializeColorPicker('#kl_banner_heading_background', '#kl_banner h2', 'background-color');
+                initializeColorPicker('#kl_banner_heading_text', '#kl_banner h2', 'color');
+                initializeColorPicker('#kl_banner_left_background', '#kl_banner_left', 'background-color');
+                initializeColorPicker('#kl_banner_left_text', '#kl_banner_left', 'color');
+                initializeColorPicker('#kl_banner_type_background', '.kl_mod_text', 'background-color');
+                initializeColorPicker('#kl_banner_type_text', '.kl_mod_text', 'color');
+                initializeColorPicker('#kl_banner_title_background', '#kl_banner_right', 'background-color');
+                initializeColorPicker('#kl_banner_title_text', '#kl_banner_right', 'color');
+                initializeColorPicker('#kl_banner_num_background', '.kl_mod_num', 'background-color');
+                initializeColorPicker('#kl_banner_num_text', '.kl_mod_num', 'color');
+            }
             bannerImageCheck();
         }, 1000);
-        addStyletoIframe();
     }
     // Loop through theme array and output thumbs
     function outputThemes(themeArray) {
         $.each(themeArray, function () {
             $('.kl_wiki_themes').append('<li id="' + this + '" class="kl_template_theme kl_wiki_theme" rel="' + this +
-                '" title="' + this +
-                ' theme"><img src="' + klToolsPath + '/images/template_thumbs/' +
+                '" data-tooltip="top" title="' + this +
+                '"><img src="' + klToolsPath + 'images/template_thumbs/' +
                 this + '.png" width="45" alt="' + this + '"></a></li>');
         });
     }
@@ -358,8 +397,8 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
     function outputFrontPageThemes(themeArray) {
         $.each(themeArray, function () {
             $('.kl_fp_themes').append('<li><a href="#" id="' + this + '" class="kl_template_theme kl_fp_theme" rel="' + this +
-                '" title="' + this +
-                ' theme"><img src="' + klToolsPath + '/images/template_thumbs/' +
+                '" data-tooltip="top" title="' + this +
+                '"><img src="' + klToolsPath + 'images/template_thumbs/' +
                 this + '.png" width="90"></a></li>');
         });
     }
@@ -371,18 +410,27 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         // Look to see if kl_mod_num exists and grab value
         if ($(iframeID).contents().find('.kl_mod_num').length > 0 && $(iframeID).contents().find('.kl_mod_num').text() !== '') {
             modNum = $(iframeID).contents().find('.kl_mod_num').text();
+            if (modNum === ' ') {
+                modNum = '## ';
+            }
         } else {
             modNum = '## ';
         }
         // Look to see if kl_mod_text exists and grab value
         if ($(iframeID).contents().find('.kl_mod_text').length > 0 && $(iframeID).contents().find('.kl_mod_text').text() !== '') {
             modText = $(iframeID).contents().find('.kl_mod_text').text();
+            if (modText === ' ') {
+                modText = 'Text ';
+            }
         } else {
             modText = 'Text ';
         }
         // Look to see if title exists and grab value
         if ($(iframeID).contents().find('#kl_banner_right').length > 0 && $(iframeID).contents().find('#kl_banner_right').text() !== '') {
             modTitle = $(iframeID).contents().find('#kl_banner_right').text();
+            if (modTitle === ' ') {
+                modTitle = 'Title';
+            }
         } else {
             modTitle = 'Title';
         }
@@ -418,7 +466,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
     function themesReady() {
         var templateClass;
         // Output theme thumbs
-        $('.kl_template_theme').click(function (e) {
+        $('.kl_template_theme').unbind("click").click(function (e) {
             var previousTheme = '', wrapperClasses;
             e.preventDefault();
             templateCheck();
@@ -448,29 +496,29 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             $('.kl_theme_color_pickers').show();
             initializeColorPicker('#kl_banner_background', '#kl_banner', 'background-color');
             initializeColorPicker('#kl_banner_text', '#kl_banner', 'color');
-            initializeColorPicker('#kl_banner_heading_background', '#kl_banner h2', 'background');
+            initializeColorPicker('#kl_banner_heading_background', '#kl_banner h2', 'background-color');
             initializeColorPicker('#kl_banner_heading_text', '#kl_banner h2', 'color');
-            initializeColorPicker('#kl_banner_left_background', '#kl_banner_left', 'background');
+            initializeColorPicker('#kl_banner_left_background', '#kl_banner_left', 'background-color');
             initializeColorPicker('#kl_banner_left_text', '#kl_banner_left', 'color');
-            initializeColorPicker('#kl_banner_type_background', '.kl_mod_text', 'background');
+            initializeColorPicker('#kl_banner_type_background', '.kl_mod_text', 'background-color');
             initializeColorPicker('#kl_banner_type_text', '.kl_mod_text', 'color');
-            initializeColorPicker('#kl_banner_title_background', '#kl_banner_right', 'background');
+            initializeColorPicker('#kl_banner_title_background', '#kl_banner_right', 'background-color');
             initializeColorPicker('#kl_banner_title_text', '#kl_banner_right', 'color');
-            initializeColorPicker('#kl_banner_num_background', '.kl_mod_num', 'background');
+            initializeColorPicker('#kl_banner_num_background', '.kl_mod_num', 'background-color');
             initializeColorPicker('#kl_banner_num_text', '.kl_mod_num', 'color');
             removeTempContent();
         });
-        $('.kl_remove_banner_left').click(function (e) {
+        $('.kl_remove_banner_left').unbind("click").click(function (e) {
             e.preventDefault();
             $(iframeID).contents().find('#kl_banner_left').remove();
             $(iframeID).contents().find('#kl_banner h2').attr('style', 'padding-left: 10px;');
         });
-        $('.kl_repair_theme').click(function (e) {
+        $('.kl_repair_theme').unbind("click").click(function (e) {
             e.preventDefault();
             templateClass = $('.kl_active_theme').attr('rel');
             themeElements(templateClass);
         });
-        $('.kl_theme_color_toggle a').click(function (e) {
+        $('.kl_theme_color_toggle a').unbind("click").click(function (e) {
             e.preventDefault();
             $('.kl_theme_color_toggle a').each(function () {
                 $(this).removeClass('active');
@@ -498,7 +546,28 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
                 $('.kl_navigation_section').prop('checked', true).trigger('change');
                 $(iframeID).contents().find('#kl_navigation').insertAfter($(iframeID).contents().find('#kl_banner_image'));
             }
+            $(iframeID).contents().find('#kl_banner_image').html('<img src="' + klToolsPath + 'images/banners/' + templateClass + '.jpg">');
         });
+        $('.kl_highlight_element').mouseover(function () {
+            var el = $(this),
+                connectedElement = $(this).attr('rel'),
+                timeoutID = setTimeout(function () {
+                    $(iframeID).contents().find(connectedElement).addClass('kl_section_hover');
+                    scrollToElement('#kl_banner');
+                }, 500);
+            el.mouseout(function () {
+                connectedElement = $(this).attr('rel');
+                $(iframeID).contents().find(connectedElement).removeClass('kl_section_hover');
+                clearTimeout(timeoutID);
+            });
+        });
+        if ($('a:contains("Template Wizard")').length > 0) {
+            $('.kl_wizard_notice').html('For help creating banner images, Use the <strong>Template Wizard</strong> link.');
+            
+        } else {
+            $('.kl_wizard_notice').html('For help creating banner images, add the Template Wizard App from <a href="/courses/' + coursenum + '/settings" target="_blank">Settings</a> > Navigation.');
+        }
+
         customCSSCheck();
         currentPagesThemeCheck();
     }
@@ -520,12 +589,13 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             '       <a href="#" class="btn btn-small active" rel="kl_wiki_theme">Pages</a>' +
             '       <a href="#" class="btn btn-small" rel="kl_custom_theme">Customize</a>' +
             '    </div>' +
-            '    <div class="kl_fp_theme_options kl_margin_bottom" style="display:none">' +
+            '    <div class="kl_fp_theme_options" style="display:none">' +
             '       <h4>Front Page Themes</h4>' +
             '       <ul class="unstyled kl_fp_themes">' +
             '       </ul>' +
-            '       <a href="#" class="kl_wizard_trigger btn btn-mini btn-primary kl_margin_bottom kl_margin_top" data-tooltip="top" title="Opens Template Wizard in a new tab.">Add Custom Banner</a>' +
-            '       <div class="kl_instructions_wrapper kl_wizard_notice"><p class="kl_instructions">To change the banner image, add the Template Wizard to the course navigation.</p></div>' +
+            '       <div class="kl_instructions_wrapper kl_margin_top_small" style="clear:both;">' +
+            '           <div class="kl_instructions kl_wizard_notice">For help creating banner images, <a href="#" class="addTemplateWizard">add the Template Wizard App</a>.</div>' +
+            '       </div>' +
             '    </div>' +
             '    <div class="kl_wiki_theme_options kl_margin_bottom">' +
             '       <h4>Pages Themes</h4>' +
@@ -539,11 +609,11 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             '       <table class="table table-striped table-condensed kl_theme_color_pickers"><thead><tr><th>Banner Colors</th><th>BG</th><th>Text</th></tr></thead>' +
             '           <tbody>' +
             '               <tr><td>Section</td><td class="pickerWidth"><input type="text" id="kl_banner_background"></td><td class="pickerWidth"><input type="text" id="kl_banner_text"></td></tr>' +
-            '               <tr><td>Heading</td><td class="pickerWidth"><input type="text" id="kl_banner_heading_background"></td><td class="pickerWidth"><input type="text" id="kl_banner_heading_text"></td></tr>' +
-            '               <tr><td>Unit Wrapper</td><td class="pickerWidth"><input type="text" id="kl_banner_left_background"></td><td class="pickerWidth"><input type="text" id="kl_banner_left_text"></td></tr>' +
-            '               <tr><td>Unit Name</td><td class="pickerWidth"><input type="text" id="kl_banner_type_background"></td><td class="pickerWidth"><input type="text" id="kl_banner_type_text"></td></tr>' +
-            '               <tr><td>Unit Number</td><td class="pickerWidth"><input type="text" id="kl_banner_num_background"></td><td class="pickerWidth"><input type="text" id="kl_banner_num_text"></td></tr>' +
-            '               <tr><td>Unit Title</td><td class="pickerWidth"><input type="text" id="kl_banner_title_background"></td><td class="pickerWidth"><input type="text" id="kl_banner_title_text"></td></tr>' +
+            '               <tr><td>Heading <a class="kl_highlight_element" rel="#kl_banner h2" data-tooltip="top" title="Highlight Section"><i class="fa fa-eye"></i></a></td><td class="pickerWidth"><input type="text" id="kl_banner_heading_background"></td><td class="pickerWidth"><input type="text" id="kl_banner_heading_text"></td></tr>' +
+            '               <tr><td>Unit Wrapper <a class="kl_highlight_element" rel="#kl_banner_left" data-tooltip="top" title="Highlight Section"><i class="fa fa-eye"></i></a></td><td class="pickerWidth"><input type="text" id="kl_banner_left_background"></td><td class="pickerWidth"><input type="text" id="kl_banner_left_text"></td></tr>' +
+            '               <tr><td>Unit Name <a class="kl_highlight_element" rel=".kl_mod_text" data-tooltip="top" title="Highlight Section"><i class="fa fa-eye"></i></a></td><td class="pickerWidth"><input type="text" id="kl_banner_type_background"></td><td class="pickerWidth"><input type="text" id="kl_banner_type_text"></td></tr>' +
+            '               <tr><td>Unit Number <a class="kl_highlight_element" rel=".kl_mod_num" data-tooltip="top" title="Highlight Section"><i class="fa fa-eye"></i></a></td><td class="pickerWidth"><input type="text" id="kl_banner_num_background"></td><td class="pickerWidth"><input type="text" id="kl_banner_num_text"></td></tr>' +
+            '               <tr><td>Unit Title <a class="kl_highlight_element" rel="#kl_banner_right" data-tooltip="top" title="Highlight Section"><i class="fa fa-eye"></i></a></td><td class="pickerWidth"><input type="text" id="kl_banner_title_background"></td><td class="pickerWidth"><input type="text" id="kl_banner_title_text"></td></tr>' +
             '           </tbody>' +
             '       </table>' +
             '       <label><input type="checkbox" id="kl_custom_css_add"> Course Level CSS</label> &nbsp;' +
@@ -590,22 +660,25 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         var newSectionName, newSectionID, newSection;
         // Grab name from text field
         newSectionName = $('#kl_new_section_name').val();
-        // Create a new id using the section name
-        newSectionID = newSectionName.replace(/\W/g, '_');
-        // Insert the new section into the TinyMCE editor
-        newSection = '<div id="' + newSectionID + '">' +
-            '    <h3>' + newSectionName + '</h3>' +
-            '    <p>Insert content here.</p>' +
-            '</div>';
-        $(iframeID).contents().find('#kl_wrapper').append(newSection);
-        // Clear the section name field
-        $('#kl_new_section_name').val('');
-        // Create an <li> for this section in the Sections List
-        addSectionControls(newSectionName, newSectionID);
-        // Put focus on new section
-        scrollToElement('#' + newSectionID);
-        highlightNewElement('#' + newSectionID);
-        bindHover();
+        // Check to make sure there is a section name
+        if (newSectionName !== '' && newSectionName !== ' ') {
+            // Create a new id using the section name
+            newSectionID = newSectionName.replace(/\W/g, '_');
+            // Insert the new section into the TinyMCE editor
+            newSection = '<div id="' + newSectionID + '">' +
+                '    <h3>' + newSectionName + '</h3>' +
+                '    <p>Insert content here.</p>' +
+                '</div>';
+            $(iframeID).contents().find('#kl_wrapper').append(newSection);
+            // Clear the section name field
+            $('#kl_new_section_name').val('');
+            // Create an <li> for this section in the Sections List
+            addSectionControls(newSectionName, newSectionID);
+            // Put focus on new section
+            scrollToElement('#' + newSectionID);
+            highlightNewElement('#' + newSectionID);
+            bindHover();
+        }
     }
 
     // This function loops through existing content and then updates section controls
@@ -617,8 +690,10 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
                 sectionTitle = $(this).find('h3:first').text();
             } else if ($(this).find('h4:first').length > 0) {
                 sectionTitle = $(this).find('h4:first').text();
-            } else {
+            } else if ($(this).text().length > 0 && $(this).text() !== ' ') {
                 sectionTitle = $(this).text();
+            } else {
+                sectionTitle = 'No Name';
             }
             if (sectionTitle.length > 25) {
                 sectionTitle = sectionTitle.substring(0, 23) + '...';
@@ -651,9 +726,9 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             }
             addSectionControls(myTitle, myValue);
             $('.kl_element_color_pickers').show();
-            initializeColorPicker('#kl_h3_background', '#kl_wrapper h3', 'background');
+            initializeColorPicker('#kl_h3_background', '#kl_wrapper h3', 'background-color');
             initializeColorPicker('#kl_h3_text', '#kl_wrapper h3', 'color');
-            initializeColorPicker('#kl_h4_background', '#kl_wrapper h4', 'background');
+            initializeColorPicker('#kl_h4_background', '#kl_wrapper h4', 'background-color');
             initializeColorPicker('#kl_h4_text', '#kl_wrapper h4', 'color');
         });
         bindHover();
@@ -664,7 +739,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             '    title="Place the cursor on the element you want to become the module title and click this button.">' +
             '    <i class="icon-text"></i> Make Title' +
             '</a>').append($('.kl_remove_empty').clone());
-        $('.kl_mark_title').click(function (e) {
+        $('.kl_mark_title').unbind("click").click(function (e) {
             var existingTitle = tinyMCE.DOM.getParent(tinyMCE.activeEditor.selection.getNode()).innerHTML;
             e.preventDefault();
             templateCheck();
@@ -748,9 +823,9 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
                 // $('.kl_template_sections_list input:checkbox:checked').each(function () {
                 // });
                 $('.kl_element_color_pickers').show();
-                initializeColorPicker('#kl_h3_background', '#kl_wrapper h3', 'background');
+                initializeColorPicker('#kl_h3_background', '#kl_wrapper h3', 'background-color');
                 initializeColorPicker('#kl_h3_text', '#kl_wrapper h3', 'color');
-                initializeColorPicker('#kl_h4_background', '#kl_wrapper h4', 'background');
+                initializeColorPicker('#kl_h4_background', '#kl_wrapper h4', 'background-color');
                 initializeColorPicker('#kl_h4_text', '#kl_wrapper h4', 'color');
                 $('.kl_identify_section_' + this.value).hide();
             } else {
@@ -767,12 +842,12 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             $('.kl_remove_sections_wrapper').hide();
         });
         // "+" button next to new section field
-        $('#kl_add_section').click(function (e) {
+        $('#kl_add_section').unbind("click").click(function (e) {
             e.preventDefault();
             createSection(sectionArray);
         });
         // Button that turns selected text into a predefined section
-        $('.kl_identify_section').click(function (e) {
+        $('.kl_identify_section').unbind("click").click(function (e) {
             e.preventDefault();
             var sectionName = $(this).attr('rel');
             wrapNamedSection(sectionName);
@@ -785,7 +860,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
                 return false;
             }
         });
-        $('.kl_sections_btn').click(function (e) {
+        $('.kl_sections_btn').unbind("click").click(function (e) {
             e.preventDefault();
             $('#kl_sections_box').dialog({ position: { my: 'right top', at: 'left top', of: '#kl_tools' }, modal: false, width: 255 });
         });
@@ -794,7 +869,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         });
         // Pull existing Canvas Pages
         // Duplicate Canvas list
-        $('.kl_existing_content_btn').click(function (e) {
+        $('.kl_existing_content_btn').unbind("click").click(function (e) {
             e.preventDefault();
             $('#kl_import_content_box').dialog({ position: { my: 'right top', at: 'left top', of: '#kl_tools' }, modal: false, width: 265 });
         });
@@ -871,7 +946,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
 /////////////////////////////////////////////////////////////
     // Accessibility Checks
     function accessibilityToolsReady() {
-        $('.kl_accessibility_color_check_toggle').click(function (e) {
+        $('.kl_accessibility_color_check_toggle').unbind("click").click(function (e) {
             e.preventDefault();
             if ($('body').hasClass('kl_accessibility_color_check')) {
                 $('body').removeClass('kl_accessibility_color_check');
@@ -892,9 +967,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             '       <a class="help pull-right kl_tools_help" data-tooltip=\'{"tooltipClass":"popover right", "position":"right"}\'' +
             '      title="<div class=\'popover-title\'>Accessibility Checking Tools</div>' +
             '        <div class=\'popover-content\'>' +
-            '            <p>This section includes controls for adding in a custom accordion group or tab group.</p>' +
-            '            <p>The accordion or tabbed widget will appear at the cursor position. Panels can be rearranged after they are created.</p>' +
-            '            <p>On the Canvas mobile app, panels and headings will appear as h4 titles with the content following after.</p>' +
+            '            <p>Contains a button to strip all color from the page.</p>' +
             '        </div>">' +
             '           &nbsp;<span class="screenreader-only">Accessibility Checking Tools</span>' +
             '    </a>' +
@@ -912,7 +985,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
 
     //// SUPPORTING FUNCTIONS ////
     function deleteAccordion() {
-        $('.kl_delete_acc_tool').click(function (e) {
+        $('.kl_delete_acc_tool').unbind("click").click(function (e) {
             e.preventDefault();
             $(iframeID).contents().find('.kl_custom_accordion_wrapper').remove();
             $(iframeID).contents().find('.kl_custom_accordion').remove();
@@ -929,7 +1002,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         });
     }
     function markCurrentAcc() {
-        $('.kl_acc_mark_current').click(function (e) {
+        $('.kl_acc_mark_current').unbind("click").click(function (e) {
             e.preventDefault();
             $(iframeID).contents().find('.kl_current_acc').removeClass('kl_current_acc');
             if ($(this).hasClass('kl_current_acc')) {
@@ -1055,7 +1128,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
     }
     // Tabs //
     function deleteTabSection() {
-        $('.kl_delete_tab_tool').click(function (e) {
+        $('.kl_delete_tab_tool').unbind("click").click(function (e) {
             e.preventDefault();
             $(iframeID).contents().find('.kl_tabbed_section').remove();
             $('#kl_tab_panels').empty();
@@ -1087,7 +1160,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         }
     }
     function markCurrentTab() {
-        $('.kl_tab_mark_current').click(function (e) {
+        $('.kl_tab_mark_current').unbind("click").click(function (e) {
             e.preventDefault();
             $(iframeID).contents().find('.kl_current_tab').removeClass('kl_current_tab');
             if ($(this).hasClass('kl_current_tab')) {
@@ -1220,7 +1293,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
     ////// READY FUNCTION //////
     function accordionTabsToolReady() {
     //// TYPE SELECTOR ////
-        $('.kl_accordion_or_tabs a').click(function (e) {
+        $('.kl_accordion_or_tabs a').unbind("click").click(function (e) {
             e.preventDefault();
             $('.kl_accordion_or_tabs a').each(function () {
                 $(this).removeClass('active');
@@ -1236,12 +1309,12 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         });
     //// ACCORDION ////
         // Add a new panel to bottom of list
-        $('#kl_add_acc_panel').click(function (e) {
+        $('#kl_add_acc_panel').unbind("click").click(function (e) {
             e.preventDefault();
             addAccPanel();
         });
         // Remove accordion section
-        $('.kl_delete_acc_panel').click(function (e) {
+        $('.kl_delete_acc_panel').unbind("click").click(function (e) {
             e.preventDefault();
             var panelToRemove = $(this).attr('rel');
             $(this).parent('li').remove();
@@ -1258,12 +1331,12 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         });
     //// TABS ////
         // Add a new panel to bottom of list
-        $('#kl_add_tab_panel').click(function (e) {
+        $('#kl_add_tab_panel').unbind("click").click(function (e) {
             e.preventDefault();
             addTabPanel();
         });
         // Remove tab section
-        $('.kl_delete_tab_panel').click(function (e) {
+        $('.kl_delete_tab_panel').unbind("click").click(function (e) {
             e.preventDefault();
             var panelToRemove = $(this).attr('rel');
             $(this).parent('li').remove();
@@ -1278,13 +1351,13 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             }
         });
         // Tab style
-        $('.kl_tab_minimal').click(function (e) {
+        $('.kl_tab_minimal').unbind("click").click(function (e) {
             e.preventDefault();
             $(iframeID).contents().find('.kl_tabbed_section').addClass('ui-tabs-minimal');
             $(this).addClass('active');
             $('.kl_tab_regular').removeClass('active');
         });
-        $('.kl_tab_regular').click(function (e) {
+        $('.kl_tab_regular').unbind("click").click(function (e) {
             e.preventDefault();
             $(iframeID).contents().find('.kl_tabbed_section').removeClass('ui-tabs-minimal');
             $(this).addClass('active');
@@ -1390,7 +1463,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
     ////// On Ready/Click functions  //////
     function advancedListsReady() {
         //// TYPE SELECTOR ////
-        $('.kl_list_type a').click(function (e) {
+        $('.kl_list_type a').unbind("click").click(function (e) {
             var activeSection = $(this).attr('rel');
             e.preventDefault();
             $('.kl_list_type a').each(function () {
@@ -1403,22 +1476,22 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             $(activeSection).show();
         });
     // Definition Lists
-        $('.kl_add_definition_list').click(function (e) {
+        $('.kl_add_definition_list').unbind("click").click(function (e) {
             e.preventDefault();
             var insertDefList = '<dl><dt>Term</dt><dd>Definition</dd></dl><p>&nbsp;</p>';
             tinyMCE.execCommand('mceInsertContent', false, insertDefList);
         });
-        $('.kl_add_dl_item').click(function (e) {
+        $('.kl_add_dl_item').unbind("click").click(function (e) {
             e.preventDefault();
             $(iframeID).contents().find('dl').append('<dt>Term</dt><dd>Definition</dd>');
         });
-        $('.kl_dl_horizontal').click(function (e) {
+        $('.kl_dl_horizontal').unbind("click").click(function (e) {
             e.preventDefault();
             $(iframeID).contents().find('dl').addClass('dl-horizontal');
             $(this).addClass('active');
             $('.kl_dl_vertical').removeClass('active');
         });
-        $('.kl_dl_vertical').click(function (e) {
+        $('.kl_dl_vertical').unbind("click").click(function (e) {
             e.preventDefault();
             $(iframeID).contents().find('dl').removeClass('dl-horizontal');
             $(this).addClass('active');
@@ -1441,16 +1514,16 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         });
 
         // Ordered/Unordered Lists
-        $('.kl_list_style_type').click(function (e) {
+        $('.kl_list_style_type').unbind("click").click(function (e) {
             e.preventDefault();
             var selectedStyle = $(this).attr('rel');
             changeListStyle(selectedStyle);
         });
-        $('.kl_indent_list').click(function (e) {
+        $('.kl_indent_list').unbind("click").click(function (e) {
             e.preventDefault();
             tinyMCE.execCommand('Indent');
         });
-        $('.kl_outdent_list').click(function (e) {
+        $('.kl_outdent_list').unbind("click").click(function (e) {
             e.preventDefault();
             tinyMCE.execCommand('Outdent');
         });
@@ -1578,14 +1651,14 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
     ////// On Ready/Click functions  //////
     function bordersAndSpacingReady() {
         var myClass, elementType, parentElement;
-        $('.kl_border_apply a').click(function (e) {
+        $('.kl_border_apply a').unbind("click").click(function (e) {
             e.preventDefault();
             $('.kl_border_apply a').each(function () {
                 $(this).removeClass('active');
             });
             $(this).addClass('active');
         });
-        $('.kl_custom_borders').click(function (e) {
+        $('.kl_custom_borders').unbind("click").click(function (e) {
             e.preventDefault();
             myClass = $(this).attr('rel');
             elementType = $('.kl_border_apply a.active').attr('rel');
@@ -1593,7 +1666,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             removeBorders(parentElement);
             tinyMCE.DOM.addClass(parentElement, myClass);
         });
-        $('.kl_custom_border_radius').click(function (e) {
+        $('.kl_custom_border_radius').unbind("click").click(function (e) {
             e.preventDefault();
             myClass = $(this).attr('rel');
             elementType = $('.kl_border_apply a.active').attr('rel');
@@ -1601,7 +1674,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             removeBorderRadius(parentElement);
             tinyMCE.DOM.addClass(parentElement, myClass);
         });
-        $('.kl_custom_padding').click(function (e) {
+        $('.kl_custom_padding').unbind("click").click(function (e) {
             e.preventDefault();
             myClass = $(this).attr('rel');
             elementType = $('.kl_border_apply a.active').attr('rel');
@@ -1609,7 +1682,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             removePadding(parentElement);
             tinyMCE.DOM.addClass(parentElement, myClass);
         });
-        $('.kl_content_box').click(function (e) {
+        $('.kl_content_box').unbind("click").click(function (e) {
             e.preventDefault();
             myClass = $(this).attr('rel');
             elementType = $('.kl_border_apply a.active').attr('rel');
@@ -1720,14 +1793,14 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
     ////// On Ready/Click functions  //////
     function customButtonsReady() {
         var myClass, parentElement;
-        $('.kl_custom_button_style').click(function (e) {
+        $('.kl_custom_button_style').unbind("click").click(function (e) {
             e.preventDefault();
             myClass = $(this).attr('rel');
             parentElement = tinyMCE.activeEditor.dom.getParent(tinyMCE.activeEditor.selection.getNode(), 'a');
             removeButtonStyle(parentElement);
             tinyMCE.DOM.addClass(parentElement, myClass);
         });
-        $('.kl_custom_button_size').click(function (e) {
+        $('.kl_custom_button_size').unbind("click").click(function (e) {
             e.preventDefault();
             myClass = $(this).attr('rel');
             parentElement = tinyMCE.activeEditor.dom.getParent(tinyMCE.activeEditor.selection.getNode(), 'a');
@@ -1808,7 +1881,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
     function customHighlightsReady() {
         var activeSection;
         //// TYPE SELECTOR ////
-        $('.kl_highlight_sections a').click(function (e) {
+        $('.kl_highlight_sections a').unbind("click").click(function (e) {
             e.preventDefault();
             $('.kl_highlight_sections a').each(function () {
                 $(this).removeClass('active');
@@ -1821,7 +1894,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             $(activeSection).show();
         });
         // Block toggle between paragraph and div
-        $('.kl_block_alert_element a').click(function (e) {
+        $('.kl_block_alert_element a').unbind("click").click(function (e) {
             var applyTo;
             e.preventDefault();
             $('.kl_block_alert_element a').each(function () {
@@ -1839,7 +1912,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
                 $('.kl_wrap_highlight').show();
             }
         });
-        $('.kl_custom_highlight_style').click(function (e) {
+        $('.kl_custom_highlight_style').unbind("click").click(function (e) {
             var elementType, myClass, parentElement;
             e.preventDefault();
             elementType = $('.kl_block_alert_element .active').attr('rel');
@@ -1854,12 +1927,12 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
                 tinyMCE.DOM.addClass(parentElement, myClass);
             }
         });
-        $('.kl_wrap_highlight').click(function (e) {
+        $('.kl_wrap_highlight').unbind("click").click(function (e) {
             e.preventDefault();
             tinyMCE.activeEditor.focus();
             tinyMCE.activeEditor.selection.setContent('<div class="alert">' + tinyMCE.activeEditor.selection.getContent() + '</div>');
         });
-        $('.kl_custom_span_highlight').click(function (e) {
+        $('.kl_custom_span_highlight').unbind("click").click(function (e) {
             var myClass, parentElement;
             e.preventDefault();
             myClass = $(this).attr('rel');
@@ -1940,6 +2013,84 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
     }
 
 /////////////////////////////////////////////////////////////
+//  IMAGE LAYOUT TOOLS                                     //
+/////////////////////////////////////////////////////////////
+    // Accessibility Checks
+    function imageToolsReady() {
+        $('.kl_image_left').unbind("click").click(function (e) {
+            e.preventDefault();
+            tinyMCE.DOM.addClass(tinyMCE.activeEditor.selection.getNode(), 'kl_style_image');
+            $(iframeID).contents().find('.kl_style_image').css({
+                'float': 'left',
+                'margin': '0 10px 10px 0'
+            }).removeClass('kl_style_image');
+        });
+        $('.kl_image_right').unbind("click").click(function (e) {
+            e.preventDefault();
+            tinyMCE.DOM.addClass(tinyMCE.activeEditor.selection.getNode(), 'kl_style_image');
+            $(iframeID).contents().find('.kl_style_image').css({
+                'float': 'right',
+                'margin': '0 0 10px 10px'
+            }).removeClass('kl_style_image');
+        });
+        $('.kl_image_width_trigger_fill').unbind("click").click(function (e) {
+            e.preventDefault();
+            tinyMCE.DOM.addClass(tinyMCE.activeEditor.selection.getNode(), 'kl_style_image kl_image_full_width');
+            $(iframeID).contents().find('.kl_style_image').css({
+                'width': '100%',
+                'height': 'auto',
+                'max-width': '100%'
+            }).removeClass('kl_style_image');
+        });
+        $('.kl_image_width_trigger_normal').unbind("click").click(function (e) {
+            e.preventDefault();
+            tinyMCE.DOM.addClass(tinyMCE.activeEditor.selection.getNode(), 'kl_style_image');
+            $(iframeID).contents().find('.kl_style_image').css({
+                'width': '',
+                'height': '',
+                'max-width': ''
+            }).removeClass('kl_style_image kl_image_full_width').removeAttr('data-mce-style');
+        });
+    }
+
+    ////// Custom Tools Accordion tab setup  //////
+    function imageTools() {
+        var addAccordionSection = '<h3 class="kl_wiki">' +
+            '   Image Layout Tools' +
+            '       <a class="help pull-right kl_tools_help" data-tooltip=\'{"tooltipClass":"popover right", "position":"right"}\'' +
+            '      title="<div class=\'popover-title\'>Image Layout Tools</div>' +
+            '        <div class=\'popover-content\'>' +
+            '            <p>This section includes controls for floating images left or right as well as making an image fill the width of the content area.</p>' +
+            '        </div>">' +
+            '           &nbsp;<span class="screenreader-only">Accessibility Checking Tools</span>' +
+            '    </a>' +
+            '</h3>' +
+            '<div>' +
+            '   <div class="btn-group-label kl_margin_bottom_small">' +
+            '      <span>Float:</span>' +
+            '      <div class="btn-group">' +
+            '         <a href="#" class="btn btn-mini kl_image_left"><i class="fa fa-arrow-left"></i> Left</a>' +
+            '         <a href="#" class="btn btn-mini kl_image_right">Right <i class="fa fa-arrow-right"></i></a>' +
+            '      </div>' +
+            '   </div>' +
+            '   <div class="btn-group-label">' +
+            '      <span>Width:</span>' +
+            '      <div class="btn-group">' +
+            '           <a href="#" class="btn btn-mini kl_image_width_trigger_fill">Fill</a>' +
+            '           <a href="#" class="btn btn-mini kl_image_width_trigger_normal">Normal</a>' +
+            '      </div>' +
+            '   </div>' +
+            '   <div class="kl_instructions_wrapper">' +
+            '      <div class="kl_instructions">' +
+            '          <p>Will change the currently selected image</p>' +
+            '      </div>' +
+            '   </div>' +
+            '</div>';
+        $('#kl_tools_accordion').append(addAccordionSection);
+        imageToolsReady();
+    }
+
+/////////////////////////////////////////////////////////////
 //  NAVIGATION                                             //
 /////////////////////////////////////////////////////////////
 
@@ -1981,7 +2132,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             $('.kl_nav_help').hide();
         }
         checkNavCount();
-        $('.kl_nav_remove_list_item').click(function (e) {
+        $('.kl_nav_remove_list_item').unbind("click").click(function (e) {
             e.preventDefault();
             var connectedItem = $(this).attr('rel');
             $(iframeID).contents().find(connectedItem).remove();
@@ -2006,7 +2157,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         } else {
             $('.kl_nav_add_item').html('<i class="icon-add"></i> Add Navigation');
         }
-        $('.kl_nav_add_item').click(function (e) {
+        $('.kl_nav_add_item').unbind("click").click(function (e) {
             e.preventDefault();
             if ($(iframeID).contents().find('#kl_navigation').length > 0) {
                 $(iframeID).contents().find('#kl_navigation ul').append('<li>New Item</li>');
@@ -2017,14 +2168,14 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
                 $('.kl_nav_add_item').html('<i class="icon-add"></i> Add Item');
             }
         });
-        $('.kl_nav_update_items').click(function (e) {
+        $('.kl_nav_update_items').unbind("click").click(function (e) {
             e.preventDefault();
             updateNavItems();
             checkNavCount();
         });
     }
     function activateNavItemsLink() {
-        $('.kl_nav_activate_items').click(function (e) {
+        $('.kl_nav_activate_items').unbind("click").click(function (e) {
             e.preventDefault();
             $('#kl_tools_accordion').accordion({ active: 7});
         });
@@ -2152,7 +2303,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         }
     }
     function popupDemos() {
-        $('.kl_demo_modal').click(function (e) {
+        $('.kl_demo_modal').unbind("click").click(function (e) {
             e.preventDefault();
             $('#kl_example_modal').dialog({
                 modal: true,
@@ -2169,7 +2320,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
     ////// On Ready/Click functions  //////
     function popupReady() {
         //// TYPE SELECTOR ////
-        $('.kl_popup_sections a').click(function (e) {
+        $('.kl_popup_sections a').unbind("click").click(function (e) {
             e.preventDefault();
             $('.kl_popup_sections a').each(function () {
                 $(this).removeClass('active');
@@ -2182,31 +2333,31 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             $(activeSection).show();
         });
         // Modals
-        $('.kl_add_modal').click(function (e) {
+        $('.kl_add_modal').unbind("click").click(function (e) {
             e.preventDefault();
             addModal();
         });
-        $('.add_modal_trigger').click(function (e) {
+        $('.add_modal_trigger').unbind("click").click(function (e) {
             e.preventDefault();
             tinyMCE.activeEditor.focus();
             tinyMCE.activeEditor.selection.setContent('<a href="#" class="kl_modal_toggler">' + tinyMCE.activeEditor.selection.getContent() + '</a>');
             // Check to see if modal contents already exist and add section
             addModal();
         });
-        $('.kl_remove_modal').click(function (e) {
+        $('.kl_remove_modal').unbind("click").click(function (e) {
             e.preventDefault();
             $(iframeID).contents().find('#kl_modal').remove();
             $(iframeID).contents().find('.kl_modal_toggler').contents().unwrap();
             $('input[value=kl_modal]').parents('li').remove();
         });
-        $('.kl_remove_modal_trigger').click(function (e) {
+        $('.kl_remove_modal_trigger').unbind("click").click(function (e) {
             e.preventDefault();
             var parentElement = tinyMCE.activeEditor.dom.getParent(tinyMCE.activeEditor.selection.getNode(), 'a.kl_modal_toggler');
             tinyMCE.DOM.addClass(parentElement, 'kl_remove_trigger');
             $(iframeID).contents().find('.kl_remove_trigger').contents().unwrap();
         });
         // Tooltips
-        $('.kl_add_tooltip').click(function (e) {
+        $('.kl_add_tooltip').unbind("click").click(function (e) {
             var numToolTips = $(iframeID).contents().find('.kl_tooltip_trigger').length,
                 newToolTipNum = numToolTips + 1,
                 toolTipElement = '<div class="kl_tooltip_text kl_tooltip_' + newToolTipNum + '">Tooltip Text</div>',
@@ -2218,7 +2369,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             $(iframeID).contents().find('.kl_create_tooltip').prepend(toolTipElement).removeClass('kl_create_tooltip');
             checkTooltips();
         });
-        $('.kl_remove_tooltip').click(function (e) {
+        $('.kl_remove_tooltip').unbind("click").click(function (e) {
             var parentElement, tipContainer;
             e.preventDefault();
             parentElement = tinyMCE.activeEditor.dom.getParent(tinyMCE.activeEditor.selection.getNode(), 'a.kl_tooltip_trigger');
@@ -2228,19 +2379,19 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             $(iframeID).contents().find('.kl_remove_tip').contents().unwrap();
             checkTooltips();
         });
-        $('.kl_show_tooltips').click(function (e) {
+        $('.kl_show_tooltips').unbind("click").click(function (e) {
             e.preventDefault();
             $(iframeID).contents().find('.kl_tooltip_text').show();
             checkTooltips();
         });
-        $('.kl_hide_tooltips').click(function (e) {
+        $('.kl_hide_tooltips').unbind("click").click(function (e) {
             e.preventDefault();
             $(iframeID).contents().find('.kl_tooltip_text').hide();
             checkTooltips();
         });
 
         // Popovers
-        $('.kl_add_popover').click(function (e) {
+        $('.kl_add_popover').unbind("click").click(function (e) {
             var numPopovers, newPopoverNum, PopoverElement, parentElement;
             e.preventDefault();
             numPopovers = $(iframeID).contents().find('.kl_popover_trigger').length;
@@ -2253,7 +2404,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             $(iframeID).contents().find('.kl_create_popover').prepend(PopoverElement).removeClass('kl_create_popover');
             checkPopovers();
         });
-        $('.kl_remove_popover').click(function (e) {
+        $('.kl_remove_popover').unbind("click").click(function (e) {
             var parentElement, popoverContainer;
             e.preventDefault();
             parentElement = tinyMCE.activeEditor.dom.getParent(tinyMCE.activeEditor.selection.getNode(), 'a.kl_popover_trigger');
@@ -2263,23 +2414,23 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             $(iframeID).contents().find('.kl_remove_tip').contents().unwrap();
             checkPopovers();
         });
-        $('.kl_show_popovers').click(function (e) {
+        $('.kl_show_popovers').unbind("click").click(function (e) {
             e.preventDefault();
             $(iframeID).contents().find('.kl_popover_content').show();
             checkPopovers();
         });
-        $('.kl_hide_popovers').click(function (e) {
+        $('.kl_hide_popovers').unbind("click").click(function (e) {
             e.preventDefault();
             $(iframeID).contents().find('.kl_popover_content').hide();
             checkPopovers();
         });
         // Read More
-        $('.kl_add_read_more').click(function (e) {
+        $('.kl_add_read_more').unbind("click").click(function (e) {
             e.preventDefault();
             tinyMCE.activeEditor.focus();
             tinyMCE.activeEditor.selection.setContent('<div class="expander">' + tinyMCE.activeEditor.selection.getContent() + '</div>');
         });
-        $('.kl_remove_read_more').click(function (e) {
+        $('.kl_remove_read_more').unbind("click").click(function (e) {
             e.preventDefault();
             var parentElement = tinyMCE.activeEditor.dom.getParent(tinyMCE.activeEditor.selection.getNode(), 'div.expander');
             tinyMCE.DOM.addClass(parentElement, 'kl_remove_expander');
@@ -2415,7 +2566,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
 
    ////// Supporting functions  //////
     function deleteProgressBar() {
-        $('.kl_progress_bar_delete').click(function (e) {
+        $('.kl_progress_bar_delete').unbind("click").click(function (e) {
             e.preventDefault();
             $(iframeID).contents().find('#kl_progress_bar').remove();
             $('input[value=kl_progress_bar]').parents('li').remove();
@@ -2526,7 +2677,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
                 '</tr>';
         $('#kl_progress_bar_section_controls tbody').append(newSectionControls);
         $(iframeID).contents().find('.kl_progress_bar_wrapper').append(newBarSectionHtml);
-        $('.kl_progress_bar_delete_section').click(function (e) {
+        $('.kl_progress_bar_delete_section').unbind("click").click(function (e) {
             e.preventDefault();
             var connectedSection = $(this).attr('rel');
             $(this).parents('tr').remove();
@@ -2599,16 +2750,16 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
     }
    ////// On Ready/Click functions  //////
     function progressBarReady() {
-        $('.kl_progress_bar_add').click(function (e) {
+        $('.kl_progress_bar_add').unbind("click").click(function (e) {
             e.preventDefault();
             addProgressBar();
             $(this).hide();
         });
-        $('.kl_progress_bar_add_section').click(function (e) {
+        $('.kl_progress_bar_add_section').unbind("click").click(function (e) {
             e.preventDefault();
             addProgressBarSection();
         });
-        $('.kl_progress_bar_label_position').click(function (e) {
+        $('.kl_progress_bar_label_position').unbind("click").click(function (e) {
             e.preventDefault();
             addProgressBar();
             var pbPosition = $(this).attr('rel');
@@ -2625,7 +2776,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             $('.kl_progress_bar_label_position.active').removeClass('active');
             $(this).addClass('active');
         });
-        $('.kl_progress_bar_height').click(function (e) {
+        $('.kl_progress_bar_height').unbind("click").click(function (e) {
             e.preventDefault();
             addProgressBar();
             var pbHeight = $(this).attr('rel');
@@ -2774,7 +2925,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
                 identifyQuestions(quickCheckNum);
             });
         }
-        $('.kl_quick_check_mark_correct').click(function (e) {
+        $('.kl_quick_check_mark_correct').unbind("click").click(function (e) {
             e.preventDefault();
             connectedAnswer = $(this).attr('rel');
             connectedSection = $(this).parents('ol').attr('rel');
@@ -2788,13 +2939,13 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
                 $(this).addClass('kl_quick_check_correct');
             }
         });
-        $('.kl_quick_check_remove_answer').click(function (e) {
+        $('.kl_quick_check_remove_answer').unbind("click").click(function (e) {
             e.preventDefault();
             connectedAnswer = $(this).attr('rel');
             $(iframeID).contents().find(connectedAnswer).remove();
             $(this).parents('li').remove();
         });
-        $('.kl_quick_check_remove').click(function (e) {
+        $('.kl_quick_check_remove').unbind("click").click(function (e) {
             e.preventDefault();
             quickCheckNum = $(this).attr('rel');
             $(iframeID).contents().find('#' + quickCheckNum).remove();
@@ -2812,7 +2963,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
 
     ////// On Ready/Click functions  //////
     function quickCheckReady() {
-        $('.kl_quick_check_add').click(function (e) {
+        $('.kl_quick_check_add').unbind("click").click(function (e) {
             var quickCheckNum, quickCheckNumber, quickCheckTemplate;
             e.preventDefault();
             templateCheck();
@@ -2847,7 +2998,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             bindHover();
             $(this).hide();
         });
-        $('.kl_quick_check_add_answer').click(function (e) {
+        $('.kl_quick_check_add_answer').unbind("click").click(function (e) {
             var quickCheckNum, quickCheckAnswerContent;
             e.preventDefault();
             quickCheckNum = $(this).attr('rel');
@@ -2865,11 +3016,11 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             highlightNewElement('#' + quickCheckNum + ' .kl_quick_check_answer:last');
             identifyQuickChecks();
         });
-        $('.kl_quick_check_update_answers').click(function (e) {
+        $('.kl_quick_check_update_answers').unbind("click").click(function (e) {
             e.preventDefault();
             identifyQuickChecks();
         });
-        $('.kl_quick_check_sections a').click(function (e) {
+        $('.kl_quick_check_sections a').unbind("click").click(function (e) {
             e.preventDefault();
             $('.kl_quick_check_sections a').each(function () {
                 $(this).removeClass('active');
@@ -2931,7 +3082,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
 
     ////// On Ready/Click functions  //////
     function activateSocialMediaLink() {
-        $('.kl_social_media_activate').click(function (e) {
+        $('.kl_social_media_activate').unbind("click").click(function (e) {
             e.preventDefault();
             $('#kl_tools_accordion').accordion({ active: 12});
         });
@@ -2947,7 +3098,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         }
     }
     function socialMediaReady() {
-        $('iframe').contents().find('#kl_social_media').find('a').each(function () {
+        $(iframeID).contents().find('#kl_social_media').find('a').each(function () {
             var smIcon = $(this).attr('class'),
                 smLink = $(this).attr('href'),
                 cleanedhref = smLink.replace('http://', '').replace('https://', '').replace('/courses/', ''),
@@ -3009,7 +3160,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             '    </div>' +
             '</div>';
         $('#kl_tools_accordion').append(addAccordionSection);
-        $('.kl_social_media_update_links').click(function (e) {
+        $('.kl_social_media_update_links').unbind("click").click(function (e) {
             e.preventDefault();
             updateSocialMediaLinks();
         });
@@ -3088,7 +3239,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
     ////// On Ready/Click functions  //////
     function tablesReady() {
         // Make the first table row headings
-        $('.kl_table_add_heading').click(function (e) {
+        $('.kl_table_add_heading').unbind("click").click(function (e) {
             var parentTable, topRow;
             e.preventDefault();
             parentTable = tinyMCE.activeEditor.dom.getParent(tinyMCE.activeEditor.selection.getNode(), 'table');
@@ -3108,7 +3259,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             checkTable(parentTable);
         });
         // Make table sortable
-        $('.kl_table_make_sortable').click(function (e) {
+        $('.kl_table_make_sortable').unbind("click").click(function (e) {
             var parentTable, currentClass, regExpMatch;
             e.preventDefault();
             parentTable = tinyMCE.activeEditor.dom.getParent(tinyMCE.activeEditor.selection.getNode(), 'table');
@@ -3123,13 +3274,13 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             }
         });
         // Buttons for manipulating the mce table
-        $('.kl_table_mce_command').click(function (e) {
+        $('.kl_table_mce_command').unbind("click").click(function (e) {
             e.preventDefault();
             var myCommand = $(this).attr('rel');
             tinymce.activeEditor.execCommand(myCommand);
         });
         // Insert a table using the custom tool
-        $('.kl_table_insert').click(function (e) {
+        $('.kl_table_insert').unbind("click").click(function (e) {
             e.preventDefault();
             insertTable();
         });
@@ -3148,7 +3299,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             }
         });
         // applying and removing tr backgrounds
-        $('.kl_table_row_backgrounds').click(function (e) {
+        $('.kl_table_row_backgrounds').unbind("click").click(function (e) {
             var parentTable, parentRow, rowClass;
             e.preventDefault();
             parentTable = tinyMCE.activeEditor.dom.getParent(tinyMCE.activeEditor.selection.getNode(), 'table');
@@ -3159,7 +3310,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             checkTable(parentTable);
         });
         // Toggle between table sections
-        $('.kl_table_options a').click(function (e) {
+        $('.kl_table_options a').unbind("click").click(function (e) {
             var connectedSection, showSection;
             e.preventDefault();
             $('.kl_table_options a').each(function () {
@@ -3172,7 +3323,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             $(this).addClass('active');
         });
         // Controls for Default, Bordered, Condensed, and Striped styles
-        $('.kl_table_style').click(function (e) {
+        $('.kl_table_style').unbind("click").click(function (e) {
             e.preventDefault();
             var myClass = $(this).attr('rel'),
                 parentTable = tinyMCE.activeEditor.dom.getParent(tinyMCE.activeEditor.selection.getNode(), 'table');
@@ -3344,7 +3495,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             '    </div>' +
             '</div>';
         $('.kl_add_style_to_iframe').after(tablesDialog);
-        $('.kl_table_dialog_trigger').click(function (e) {
+        $('.kl_table_dialog_trigger').unbind("click").click(function (e) {
             e.preventDefault();
             $('#kl_tables_dialog').dialog({ position: { my: 'right top', at: 'left top', of: '#kl_tools' }, modal: false, width: 255 });
         });
@@ -3361,7 +3512,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         $.each(arrayName, function () {
             $('#kl_blooms').append('<a class="label label-info kl_blooms" rel="' + this + '" title="' + this + '">' + this + '</a> ');
         });
-        $('.kl_blooms').click(function (e) {
+        $('.kl_blooms').unbind("click").click(function (e) {
             e.preventDefault();
             var selectedWord = $(this).attr('rel');
             if ($('.kl_blooms_new_item').hasClass('active')) {
@@ -3383,7 +3534,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             sectionToScrollTo = '#kl_syllabus_outcomes';
         }
         bloomsButton = '<a class="btn btn-mini kl_blooms_btn kl_margin_bottom_small" href="#" data-tooltip="top"' +
-        'title="Select action verbs from<br> Bloom\'s &rdquo;Revised&ldquo; Taxonomy"><i class="fa fa-book"></i> Bloom&rsquo;s Revised</a>';
+            'title="Select action verbs from<br> Bloom\'s &rdquo;Revised&ldquo; Taxonomy"><i class="fa fa-book"></i> Bloom&rsquo;s Revised</a>';
         bloomsBoxContent = '<div id="kl_blooms_box" style="display:none" title="Bloom\'s Revised">' +
             '<div class="btn-group-label"><span>Insert At:</span>' +
             '    <div class="btn-group">' +
@@ -3406,7 +3557,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         $('#kl_tools_accordion').after(bloomsBoxContent);
         $.each(bloomsRevisedSections, function (key, value) {
             $('#kl_blooms_controls').append('<a class="btn btn-mini ' + key + ' kl_blooms_category">' + key + '</a>');
-            $('.' + key).click(function (e) {
+            $('.' + key).unbind("click").click(function (e) {
                 e.preventDefault();
                 if ($(this).hasClass('active')) {
                     $(this).removeClass('active');
@@ -3429,7 +3580,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             }
         });
         // Trigger for Bloom's dialog
-        $('.kl_blooms_btn').click(function (e) {
+        $('.kl_blooms_btn').unbind("click").click(function (e) {
             e.preventDefault();
             $('#kl_blooms_box').dialog({ position: { my: 'right top', at: 'left top', of: '#kl_tools' }, modal: false, width: 255 });
             if ($(iframeID).contents().find(sectionToScrollTo).length > 0) {
@@ -3441,12 +3592,12 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             });
         });
         // Determine whether word is inserted as a new item or at the cursor position
-        $('.kl_blooms_new_item').click(function (e) {
+        $('.kl_blooms_new_item').unbind("click").click(function (e) {
             e.preventDefault();
             $(this).addClass('active');
             $('.kl_blooms_at_cursor').removeClass('active');
         });
-        $('.kl_blooms_at_cursor').click(function (e) {
+        $('.kl_blooms_at_cursor').unbind("click").click(function (e) {
             e.preventDefault();
             $(this).addClass('active');
             $('.kl_blooms_new_item').removeClass('active');
@@ -3679,7 +3830,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
                 $('#kl_icons').append('<a class="kl_icon_change" rel="' + this + '" title="' + this + '"><i class="' + this + '"></i></a> ');
             });
             $('#kl_icons i').each(function () {
-                if($(this).hasClass('fa')) {
+                if ($(this).hasClass('fa')) {
                     $(this).parent('a').addClass('kl_fa_icon');
                 }
             });
@@ -3688,7 +3839,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         $.each(iconSections, function (key, value) {
             var displayTitle = key.replace('_', ' ');
             $('#kl_icon_lists').append('<a class="btn btn-mini ' + key + ' kl_icon_category">' + displayTitle + '</a>');
-            $('.' + key).click(function (e) {
+            $('.' + key).unbind("click").click(function (e) {
                 e.preventDefault();
                 $('#kl_icons').show();
                 if ($(this).hasClass('active')) {
@@ -3717,20 +3868,16 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         $('#kl_tools_accordion').after('<a href="#" class="kl_icons_activate kl_margin_bottom_small btn btn-mini" style="margin-right: 5px;"><i class="fa fa-tags"></i> Icons</a>');
 
         // Trigger for Icon dialog
-        $('.kl_icons_activate').click(function (e) {
+        $('.kl_icons_activate').unbind("click").click(function (e) {
             e.preventDefault();
             $('#kl_icon_box').dialog({ position: { my: 'right top', at: 'left top', of: '#kl_tools' }, modal: false, width: 265 });
         });
-        $('.kl_icon_apply_to').click(function (e) {
+        $('.kl_icon_apply_to').unbind("click").click(function (e) {
             e.preventDefault();
             $('.kl_icon_apply_to.active').removeClass('active');
             $(this).addClass('active');
         });
     }
-
-/////////////////////////////////////////////////////////////
-//  EDITING MARKUPS                                        //
-/////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////
 //  FONTS                                                  //
@@ -3742,13 +3889,13 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
 
     ////// Supporting functions  //////
     function activateModuleListLink() {
-        $('.kl_modules_activate').click(function (e) {
+        $('.kl_modules_activate').unbind("click").click(function (e) {
             e.preventDefault();
             $('#kl_tools_accordion').accordion({ active: 4});
         });
     }
     function bindRemove() {
-        $('.kl_modules_list_remove_item').click(function (e) {
+        $('.kl_modules_list_remove_item').unbind("click").click(function (e) {
             e.preventDefault();
             var connectedItem = $(this).attr('rel');
             $(iframeID).contents().find(connectedItem).remove();
@@ -3790,7 +3937,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
                 return undefined;
             }
         }
-        $('.kl_modules_choose_dates_trigger').click(function (e) {
+        $('.kl_modules_choose_dates_trigger').unbind("click").click(function (e) {
             e.preventDefault();
             var container = $(this).attr('rel');
             $(container).slideToggle();
@@ -3853,11 +4000,11 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
                     }
                 }
             });
-            $('.kl_modules_expand_dates').click(function (e) {
+            $('.kl_modules_expand_dates').unbind("click").click(function (e) {
                 e.preventDefault();
                 $('.kl_modules_choose_dates').slideDown();
             });
-            $('.kl_modules_collapse_dates').click(function (e) {
+            $('.kl_modules_collapse_dates').unbind("click").click(function (e) {
                 e.preventDefault();
                 $('.kl_modules_choose_dates').slideUp();
             });
@@ -3886,7 +4033,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             moduleTitle +
             '<a href="#" class="kl_remove pull-right kl_modules_list_remove_item" rel="#' + moduleID + '" data-tooltip="top" title="Remove ' + moduleTitle + '">' +
             '<i class="icon-end"></i><span class="screenreader-only">Remove item</a>' +
-            '<div id="kl_module_dates_' + moduleID + '" rel="#' + moduleID + '"  class="kl_modules_choose_dates">' +
+            '<div id="kl_module_dates_' + moduleID + '" rel="#' + moduleID + '"  class="kl_modules_choose_dates hide">' +
             '    <label for="kl_modules_from' + moduleID + '" style="display:none;">From</label>' +
             '    <input type="text" id="kl_modules_from' + moduleID + '" class="kl_modules_from input-small" name="kl_modules_from" placeholder="Start Date" value="' + moduleStartDate + '">' +
             '    <label for="kl_modules_to' + moduleID + '">to</label>' +
@@ -3907,7 +4054,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
                 $('.kl_modules_list_link_to_first_item').removeClass('active');
                 $('.kl_modules_list_link_to_module').addClass('active');
             }
-            $('.kl_modules_list_link_to_first_item').click(function (e) {
+            $('.kl_modules_list_link_to_first_item').unbind("click").click(function (e) {
                 e.preventDefault();
                 $(iframeID).contents().find('.kl_connected_module').each(function () {
                     myhref = $(this).attr('href');
@@ -3917,7 +4064,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
                 });
                 linkToFirstItemCheck();
             });
-            $('.kl_modules_list_link_to_module').click(function (e) {
+            $('.kl_modules_list_link_to_module').unbind("click").click(function (e) {
                 e.preventDefault();
                 $(iframeID).contents().find('.kl_connected_module').each(function () {
                     myhref = $(this).attr('href');
@@ -3933,7 +4080,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         }
     }
     function markCurrent() {
-        $('.kl_modules_list_mark_current').click(function (e) {
+        $('.kl_modules_list_mark_current').unbind("click").click(function (e) {
             e.preventDefault();
             var listItem = $(this).attr('rel');
             $(iframeID).contents().find('#kl_modules .kl_current').removeClass('kl_current');
@@ -4015,7 +4162,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
     //// On Ready/Click functions  //////
     function moduleListToolReady() {
         // Module List
-        $('.kl_modules_insert').click(function (e) {
+        $('.kl_modules_insert').unbind("click").click(function (e) {
             e.preventDefault();
             $('.kl_modules_section').prop('checked', true).trigger('change');
         });
@@ -4030,23 +4177,49 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             modListCheck();
         });
         if ($(iframeID).contents().find('.kl_modules_quick_links').length > 0) {
-            $('.kl_modules_quick_links_yes').addClass('active');
+            $('.kl_modules_quick_links_current').addClass('active');
+            $('.kl_modules_quick_links_tabbed').removeClass('active');
             $('.kl_modules_quick_links_no').removeClass('active');
+        } else if ($(iframeID).contents().find('.kl_modules_tabbed').length > 0) {
+            $('.kl_modules_quick_links_current').removeClass('active');
+            $('.kl_modules_quick_links_tabbed').addClass('active');
+            $('.kl_modules_quick_links_no').removeClass('active');
+            $('.kl_module_column_controls').hide();
         } else {
-            $('.kl_modules_quick_links_yes').removeClass('active');
+            $('.kl_modules_quick_links_current').removeClass('active');
+            $('.kl_modules_quick_links_tabbed').removeClass('active');
             $('.kl_modules_quick_links_no').addClass('active');
         }
-        $('.kl_modules_quick_links_yes').click(function (e) {
+        $('.kl_modules_quick_links_current').unbind("click").click(function (e) {
             e.preventDefault();
-            $(iframeID).contents().find('#kl_modules').addClass('kl_modules_quick_links');
+            $(iframeID).contents().find('#kl_modules').addClass('kl_modules_quick_links').removeClass('kl_modules_tabbed');
             $(this).addClass('active');
             $('.kl_modules_quick_links_no').removeClass('active');
+            $('.kl_modules_quick_links_tabbed').removeClass('active');
+            $('.kl_module_column_controls').show();
         });
-        $('.kl_modules_quick_links_no').click(function (e) {
+        $('.kl_modules_quick_links_tabbed').unbind("click").click(function (e) {
             e.preventDefault();
-            $(iframeID).contents().find('#kl_modules').removeClass('kl_modules_quick_links');
+            $(iframeID).contents().find('#kl_modules').addClass('kl_modules_tabbed').removeClass('kl_modules_quick_links');
             $(this).addClass('active');
-            $('.kl_modules_quick_links_yes').removeClass('active');
+            $('.kl_modules_quick_links_current').removeClass('active');
+            $('.kl_modules_quick_links_no').removeClass('active');
+            $('.kl_module_column_controls').hide();
+        });
+        $('.kl_modules_quick_links_no').unbind("click").click(function (e) {
+            e.preventDefault();
+            $(iframeID).contents().find('#kl_modules').removeClass('kl_modules_quick_links kl_modules_tabbed');
+            $(this).addClass('active');
+            $('.kl_modules_quick_links_current').removeClass('active');
+            $('.kl_modules_quick_links_tabbed').removeClass('active');
+            $('.kl_module_column_controls').show();
+        });
+        $('.kl_modules_columns').unbind('click').click(function (e) {
+            e.preventDefault();
+            var columnNum = $(this).attr('rel');
+            $('.kl_modules_columns').removeClass('active');
+            $(iframeID).contents().find('#kl_modules').removeClass('kl_modules_columns_4 kl_modules_columns_3 kl_modules_columns_1').addClass(columnNum);
+            $(this).addClass('active');
         });
         identifyModuleList();
     }
@@ -4066,9 +4239,9 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             '<div>' +
             '    <div class="btn-group-label" style=>' +
             '        <span><i class="fa fa-calendar"></i> Date Fields: </a></span>' +
-            '        <div class="btn-group pull-right kl_modules_dates" style="display:none;">' +
-            '           <a href="#" class="btn btn-mini kl_modules_expand_dates"><i class="icon-expand"></i> Show</a>' +
-            '           <a href="#" class="btn btn-mini kl_modules_collapse_dates"><i class="icon-collapse"></i> Hide</a>' +
+            '        <div class="btn-group kl_modules_dates" style="display:none;">' +
+            '           <a href="#" class="btn btn-mini kl_modules_expand_dates"><i class="icon-expand"></i> Show Dates</a>' +
+            '           <a href="#" class="btn btn-mini kl_modules_collapse_dates"><i class="icon-collapse"></i> Hide Dates</a>' +
             '       </div>' +
             '    </div>' +
             '    <div class="kl_modules_list_controls_options kl_margin_bottom" style="clear: both;">' +
@@ -4078,8 +4251,18 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             '    <div class="btn-group-label moduleLinkControl">' +
             '        <span>Include Quick Links: </span>' +
             '        <div class="btn-group">' +
-            '            <a href="#" class="btn btn-mini kl_modules_quick_links_yes" data-tooltip="top" title="Will display links to current module items below grid">Yes</a>' +
-            '            <a href="#" class="btn btn-mini kl_modules_quick_links_no">No</a>' +
+            '            <a href="#" class="btn btn-mini kl_modules_quick_links_current" data-tooltip="top" title="Will display links to current module items below grid">Current</a>' +
+            '            <a href="#" class="btn btn-mini kl_modules_quick_links_tabbed" data-tooltip="top" title="Will tabbed list of modules with linked items">All</a>' +
+            '            <a href="#" class="btn btn-mini kl_modules_quick_links_no">None</a>' +
+            '        </div>' +
+            '    </div>' +
+            '    <div class="btn-group-label kl_margin_top_small kl_module_column_controls">' +
+            '        <span>Columns: </span>' +
+            '        <div class="btn-group">' +
+            '            <a href="#" class="btn btn-mini kl_modules_columns" rel="kl_modules_columns_1">1</a>' +
+            '            <a href="#" class="btn btn-mini kl_modules_columns" rel="">2</a>' +
+            '            <a href="#" class="btn btn-mini kl_modules_columns" rel="kl_modules_columns_3" data-tooltip="top" title="3 Large Display - 2 Small Display">3</a>' +
+            '            <a href="#" class="btn btn-mini kl_modules_columns" rel="kl_modules_columns_4" data-tooltip="top" title="4 Large Display - 3 Small Display">4</a>' +
             '        </div>' +
             '    </div>' +
             '    <div class="btn-group-label kl_modules_list_link_controls kl_margin_bottom hide">' +
@@ -4162,7 +4345,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             }
             insertPolicies();
         }
-        $('#kl_syllabus_policy_notice a').click(function (e) {
+        $('#kl_syllabus_policy_notice a').unbind("click").click(function (e) {
             e.preventDefault();
             $('#kl_syllabus_policy_notice .active').removeClass('active');
             $(this).addClass('active');
@@ -4352,12 +4535,12 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         });
 
         // "+" button next to new section field
-        $('#' + sectionParent + '_add_section').click(function (e) {
+        $('#' + sectionParent + '_add_section').unbind("click").click(function (e) {
             e.preventDefault();
             createSubSection(sectionList, sectionParent);
         });
         // Button that turns selected text into a predefined section
-        $(sectionList + ' .kl_syllabus_identify_subsection').click(function (e) {
+        $(sectionList + ' .kl_syllabus_identify_subsection').unbind("click").click(function (e) {
             e.preventDefault();
             var parentCheckbox, sectionName = $(this).attr('rel');
             templateCheck();
@@ -4481,22 +4664,22 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             }
         }
 
-        $('.kl_syllabus_instructor_add').click(function (e) {
+        $('.kl_syllabus_instructor_add').unbind("click").click(function (e) {
             e.preventDefault();
             $(iframeID).contents().find('.kl_syllabus_instructors').append(klToolsVariables.klSyllabusAdditionalInstructor);
             checkContacts();
         });
-        $('.kl_syllabus_instructor_remove').click(function (e) {
+        $('.kl_syllabus_instructor_remove').unbind("click").click(function (e) {
             e.preventDefault();
             $(iframeID).contents().find('.kl_syllabus_additional_instructor:last').remove();
             checkContacts();
         });
-        $('.kl_syllabus_teaching_assistant_add').click(function (e) {
+        $('.kl_syllabus_teaching_assistant_add').unbind("click").click(function (e) {
             e.preventDefault();
             $(iframeID).contents().find('.kl_syllabus_teaching_assistant').append(klToolsVariables.klSyllabusAdditionalTeachingAssistant);
             checkContacts();
         });
-        $('.kl_syllabus_teaching_assistant_remove').click(function (e) {
+        $('.kl_syllabus_teaching_assistant_remove').unbind("click").click(function (e) {
             e.preventDefault();
             $(iframeID).contents().find('.kl_syllabus_additional_teaching_assistant:last').remove();
             checkContacts();
@@ -4568,7 +4751,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         $('.kl_syllabus_learning_outcomes_section').change(function () {
             checkOutcomesBox();
         });
-        $('.kl_close_help').click(function (e) {
+        $('.kl_close_help').unbind("click").click(function (e) {
             e.preventDefault();
             $(this).parents('div.well').slideUp();
         });
@@ -4576,7 +4759,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
 
         //// IDEA ////
         // Trigger for IDEA dialog
-        $('.kl_idea_btn').click(function (e) {
+        $('.kl_idea_btn').unbind("click").click(function (e) {
             e.preventDefault();
             scrollToElement('.kl_syllabus_learning_outcomes');
             $('#kl_idea_box').dialog({ position: { my: 'right top', at: 'left top', of: '#kl_tools' }, modal: false, width: 255 });
@@ -4586,7 +4769,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             });
         });
         // Selection Hover
-        $('.kl_idea_objective').click(function (e) {
+        $('.kl_idea_objective').unbind("click").click(function (e) {
             e.preventDefault();
             var selectedObjective = $(this).find('.kl_idea_objective_text').text();
             if ($(this).hasClass('kl_idea_expand')) {
@@ -4603,19 +4786,19 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             $(this).addClass('kl_idea_expand');
         });
         // Determine whether word is inserted as a new item or at the cursor position
-        $('.kl_idea_new_item').click(function (e) {
+        $('.kl_idea_new_item').unbind("click").click(function (e) {
             e.preventDefault();
             $(this).addClass('active');
             $('.kl_idea_at_cursor').removeClass('active');
         });
-        $('.kl_idea_at_cursor').click(function (e) {
+        $('.kl_idea_at_cursor').unbind("click").click(function (e) {
             e.preventDefault();
             $(this).addClass('active');
             $('.kl_idea_new_item').removeClass('active');
         });
         // Close IDEA help
         // Check whether to include assessment in list or not
-        $('.kl_syllabus_outcomes_assessments_yes').click(function (e) {
+        $('.kl_syllabus_outcomes_assessments_yes').unbind("click").click(function (e) {
             e.preventDefault();
             $(this).addClass('active');
             $('.kl_syllabus_outcomes_assessments_no').removeClass('active');
@@ -4632,7 +4815,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
                 $(iframeID).contents().find('.kl_syllabus_learning_outcomes ul li:last').after(assessmentList);
             }
         });
-        $('.kl_syllabus_outcomes_assessments_no').click(function (e) {
+        $('.kl_syllabus_outcomes_assessments_no').unbind("click").click(function (e) {
             e.preventDefault();
             $(this).addClass('active');
             $('.kl_syllabus_outcomes_assessments_yes').removeClass('active');
@@ -4646,7 +4829,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             $('.kl_syllabus_outcomes_add').show();
         }
         // Add Outcomes/Assessment button
-        $('.kl_syllabus_outcomes_add').click(function (e) {
+        $('.kl_syllabus_outcomes_add').unbind("click").click(function (e) {
             e.preventDefault();
             scrollToElement('.kl_syllabus_learning_outcomes ul');
             $(iframeID).contents().find('.kl_syllabus_learning_outcomes ul').first().append('<li>Outcome</li>' +
@@ -4701,7 +4884,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
                         '<p style="text-align:center;">' +
                         '  <a href="#" class="btn btn-danger kl_grade_scheme_walkthrough"><i class="fa fa-eye"></i> Show Me How</a>' +
                         '</p>');
-                    $('.kl_grade_scheme_walkthrough').click(function (e) {
+                    $('.kl_grade_scheme_walkthrough').unbind("click").click(function (e) {
                         e.preventDefault();
                         var defaulthref = $('.settings').attr('href'),
                             newhref = defaulthref + '?task=setGradeScheme';
@@ -4750,7 +4933,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             '</div>';
         $('#kl_syllabus_grades_syllabus_sections_buttons').append(componentPointsControls);
         // Component Point options
-        $('.kl_grades_component_points_from_canvas').click(function (e) {
+        $('.kl_grades_component_points_from_canvas').unbind("click").click(function (e) {
             e.preventDefault();
             $(iframeID).contents().find('#kl_syllabus_canvas_assignment_list').remove();
             $(iframeID).contents().find('.kl_syllabus_course_assignments').append('<div id="kl_syllabus_canvas_assignment_list" />');
@@ -4760,7 +4943,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             $('.kl_grades_component_points_custom_table').removeClass('active');
             $('.kl_grades_component_points_from_canvas_controls').show();
         });
-        $('.kl_grades_component_points_custom_table').click(function (e) {
+        $('.kl_grades_component_points_custom_table').unbind("click").click(function (e) {
             e.preventDefault();
             $(this).addClass('active');
             $(iframeID).contents().find('#kl_syllabus_canvas_assignment_list').remove();
@@ -5299,13 +5482,13 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         identifyModuleList();
     }
     function updateContentCheck() {
-        if ($(iframeID).contents().find('#usu-template-banner').length > 0 || $(iframeID).contents().find('#template-wrapper').length > 0) {
+        if ($(iframeID).contents().find('#usu-template-banner').length > 0 || $(iframeID).contents().find('#template-wrapper').length > 0 ||  $(iframeID).contents().find('#usu-template-front').length > 0) {
             var updateHtml = '<div class="kl_update_tools_wrapper"><a href="#" style="width: 216px;" class="btn btn-danger kl_update_tools kl_margin_bottom" data-tooltip="top" ' +
                 'title="Update code created with previous versions of these tools"><i class="fa fa-wrench"></i> Update Code</a>' +
                 '<div class="kl_instructions">This content was created using an older version of these tools. You will need to update the code before using the current version.</div>';
             if ($('.kl_update_tools').length === 0) {
                 $('#kl_tools').prepend(updateHtml);
-                $('.kl_update_tools').click(function (e) {
+                $('.kl_update_tools').unbind("click").click(function (e) {
                     e.preventDefault();
                     updateWrapper();
                     updateCustomCss();
@@ -5342,8 +5525,6 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         }
     }
 
-
-
 /////////////////////////////////////////////////////////////
 //  API FUNCTIONS                                          //
 ///////////////////////////////////////////////////////////// 
@@ -5354,7 +5535,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         $('.kl_existing_page_links li').each(function () {
             $(this).attr({'data-tooltip': 'left', 'title': 'Pull content from this page'}).addClass('fa fa-files-o');
         });
-        $('.kl_existing_page_links a').click(function (e) {
+        $('.kl_existing_page_links a').unbind("click").click(function (e) {
             e.preventDefault();
             var linkHref, contentUrl;
             // Clear quick check
@@ -5370,6 +5551,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
                     $('.kl_loading').removeClass('kl_loading');
                     sectionsPanelDefault = true;
                     updateContentCheck();
+                    setupMainTools();
                 });
         });
     }
@@ -5378,7 +5560,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         $.post(klToolsVariables.klApiToolsPath + 'checkTemplates.php', { courseID: coursenum })
             .done(function (data) {
                 $('#kl_course_template_pages').html(data);
-                $('.kl_import_primary_template').click(function (e) {
+                $('.kl_import_primary_template').unbind("click").click(function (e) {
                     e.preventDefault();
                     $('.kl_import_primary_template i').attr('class', 'fa fa-spinner fa-spin');
                     $.post(klToolsVariables.klApiToolsPath + 'getPage.php', { courseID: coursenum, pageUrl: 'primary-template' })
@@ -5387,9 +5569,10 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
                             $('.kl_import_primary_template i').attr('class', 'fa fa-clipboard');
                             sectionsPanelDefault = true;
                             updateContentCheck();
+                            setupMainTools();
                         });
                 });
-                $('.kl_import_secondary_template').click(function (e) {
+                $('.kl_import_secondary_template').unbind("click").click(function (e) {
                     e.preventDefault();
                     $('.kl_import_secondary_template i').attr('class', 'fa fa-spinner fa-spin');
                     $.post(klToolsVariables.klApiToolsPath + 'getPage.php', { courseID: coursenum, pageUrl: 'secondary-template' })
@@ -5398,6 +5581,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
                             $('.kl_import_secondary_template i').attr('class', 'fa fa-clipboard');
                             sectionsPanelDefault = true;
                             updateContentCheck();
+                            setupMainTools();
                         });
                 });
             });
@@ -5430,7 +5614,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
                 $(iframeID).contents().find('body').html(data);
                 $('#kl_get_existing i').attr('class', 'fa fa-files-o');
                 sectionsPanelDefault = true;
-                // setupMainTools();
+                setupMainTools();
             });
     }
     function bindAPIImportsTriggers() {
@@ -5442,7 +5626,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
                 return false;
             }
         });
-        $('#kl_get_existing').click(function (e) {
+        $('#kl_get_existing').unbind("click").click(function (e) {
             e.preventDefault();
             importPageContentUrl();
         });
@@ -5515,7 +5699,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
                 $('#accordion').accordion('option', 'icons', icons);
             }
         });
-        $('.kl_buttons_activate').click(function (e) {
+        $('.kl_buttons_activate').unbind("click").click(function (e) {
             e.preventDefault();
             $('#kl_tools_accordion').accordion({ active: 5});
         });
@@ -5555,6 +5739,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         bordersAndSpacingTool();
         customButtons();
         customHighlights();
+        imageTools();
         popupContent();
         progressBar();
         quickCheck();
@@ -5566,6 +5751,10 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         if (assignmentsPage === true) {
             // Load tools unique to assignments page
             console.log('assignments page');
+        }
+        if (discussionsPage === true) {
+            // Load tools unique to discussions page
+            console.log('discussions page');
         }
         // activate the accordion
 
@@ -5638,6 +5827,10 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
                     // Assignments
                     iframeID = '#assignment_description_ifr';
                     assignmentsPage = true;
+                } else if ($('#discussion-topic-message11_ifr').length > 0) {
+                    // Discussions
+                    iframeID = '#discussion-topic-message11_ifr';
+                    discussionsPage = true;
                 } else if ($('.edit_syllabus_link').length > 0) {
                     // Syllabus
                     iframeID = '#course_syllabus_body_ifr';
@@ -5655,13 +5848,13 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
                         }
                     });
                 }
-                $('.kl_add_tools').click(function (e) {
+                $('.kl_add_tools').unbind("click").click(function (e) {
                     e.preventDefault();
                     editorExistenceCheck(toolsToLoad);
                 });
             }
         }
-        $('.kl_add_style_to_iframe').click(function (e) {
+        $('.kl_add_style_to_iframe').unbind("click").click(function (e) {
             e.preventDefault();
             addStyletoIframe();
             $('a:contains("HTML Editor")').get(0).scrollIntoView();
@@ -5681,7 +5874,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         // If it is the start here page, add button to insert start here content
         if ($('#title').val() === 'Start Here') {
             $('#title').after('&nbsp; &nbsp;<a href="#" class="btn btn-primary kl_import_start_here"><i class="fa fa-cloud-download"></i> Import &ldquo;Start Here&rdquo; Boilerplate</a>');
-            $('.kl_import_start_here').click(function (e) {
+            $('.kl_import_start_here').unbind("click").click(function (e) {
                 e.preventDefault();
                 $(iframeID).contents().find('body').html(klToolsVariables.startHereContent);
                 $('.kl_add_tools').trigger('click');
