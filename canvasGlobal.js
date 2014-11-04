@@ -19,8 +19,8 @@
 ///////////////////////////////////
 // Kenneth's Custom Canvas Tools //
 ///////////////////////////////////
-// Path to where the canvasCustomTools folder is located
 
+// Path to where the canvasCustomTools folder is located
 //E. Scull - Add conditional logic to see if we're on test or live Canvas instance. Set URLs accordingly.
 var is_test_canvas = (window.location.href.lastIndexOf("https://iu.test.instructure.com", 0) === 0);
 console.log("In testing Canvas instance: " + is_test_canvas);
@@ -35,7 +35,8 @@ if(is_test_canvas){
 
 
 var klToolsPath = url_root + "iu-tools/2.0/",
-    globalCSSPath = url_root + "iu-tools/2.0/canvasGlobal.css";
+    globalCSSPath = url_root + "iu-tools/2.0/canvasGlobal.css",
+    klFontAwesomePath = "//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css";
 
 console.log('canvasGlobal.js loading');
 //Parse Course Number - It is stored in the variable "coursenum"//
@@ -57,7 +58,7 @@ if (matches) {
     setTimeout(function () {
         if ($('.new_page').length > 0 || ($('#editor_tabs').length > 0 && $('.edit_link').length === 0)) {
             // Include Font-Awesome icons
-            $("head").append($("<link/>", { rel: "stylesheet", href: "//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css"}));
+            $("head").append($("<link/>", { rel: "stylesheet", href: klFontAwesomePath, type: 'text/css'}));
             // Load tools js
             $.getScript(klToolsPath + "js/tools_variables.js", function () {
                 console.log("KennethWare tools_variables loaded");
