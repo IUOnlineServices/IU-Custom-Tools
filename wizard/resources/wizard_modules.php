@@ -56,6 +56,7 @@ require_once 'wizardAPI.php';
 	</script>
 </head>
 <body>
+	<h2><i class="fa fa-sitemap"></i> Modules <small><i class="fa fa-magic"></i> Wizard Tools</small></h2>
 	<nav class="navbar navbar-default">
 		<ul class="nav navbar-nav">
 			<li><a href="wizard_pages.php"><i class="fa fa-files-o"></i> Page Templates</a></li>
@@ -63,7 +64,6 @@ require_once 'wizardAPI.php';
 			<li><a href="wizard_image_crop.php?task=selectImage"><i class="fa fa-picture-o"></i> Images</a></li>
 		</ul>
 	</nav>
-	<h2><i class="fa fa-sitemap"></i> Modules</h2>
 	<div class="container-fluid">
 		<div class="row-fluid">
 			<form id="moduleForm">
@@ -194,16 +194,17 @@ require_once 'wizardAPI.php';
 						<div class="form-group">
 							<label for="modulePrefix" class="patternLabel">Module Prefix </label>
 							<select name="modulePrefix" id="modulePrefix" class="form-control" required="required" style="width: 115px; text-align: center;">
-								<option value="Module">Module #:</option>
-								<option value="Unit">Unit #:</option>
-								<option value="Week">Week #:</option>
-								<option value="Section">Section #:</option>
 								<option value="Chapter">Chapter #:</option>
-								<option value="Part">Part #:</option>
 								<option value="Day">Day #:</option>
-								<option value="Topic">Topic #:</option>
+								<option value="Level">Level #:</option>
+								<option value="Module" selected="selected">Module #:</option>
 								<option value="Objective">Objective #:</option>
 								<option value="Outcome">Outcome #:</option>
+								<option value="Part">Part #:</option>
+								<option value="Section">Section #:</option>
+								<option value="Topic">Topic #:</option>
+								<option value="Unit">Unit #:</option>
+								<option value="Week">Week #:</option>
 							</select>
 						</div>
 						<div class="checkbox">
