@@ -389,7 +389,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             $('.kl_wiki_themes').append('<li id="' + this + '" class="kl_template_theme kl_wiki_theme" rel="' + this +
                 '" data-tooltip="top" title="' + this +
                 '"><img src="' + klToolsPath + 'images/template_thumbs/' +
-                this + '.png" width="45" alt="' + this + '"></a></li>');
+                this + '.png" width="45" alt="' + this + '"></li>'); //E. Scull: Removed </a> before </li>
         });
     }
     // Output themes
