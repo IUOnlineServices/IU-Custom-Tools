@@ -1,5 +1,6 @@
 /*jslint browser: true, sloppy: false, eqeq: false, vars: false, maxerr: 50, indent: 4, plusplus: true */
-/*global $, jQuery, alert, coursenum, console, klToolsPath, globalCSSPath, klFontAwesomePath, tinymce, tinyMCE, klToolsVariables,
+
+/*global $, jQuery, iframeID, alert, coursenum, console, klToolsPath, globalCSSPath, klFontAwesomePath, tinymce, tinyMCE, klToolsVariables,
 klToolsArrays, vendor_legacy_normal_contrast,  */
 
 // These tools were designed to facilitate rapid course development in the Canvas LMS
@@ -23,11 +24,10 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
 //    VARIABLES                    //
 /////////////////////////////////////
 
-    var iframeID,
-        toolsToLoad,
+    var toolsToLoad,
         sectionsPanelDefault = false,
-        assignmentsPage = false,
-        discussionsPage = false,
+        // assignmentsPage = false,
+        // discussionsPage = false,
         // Basic shell to add into template
         templateShell = '<div id="kl_wrapper" class="kl_bookmark"></div>',
         // Bloom's Taxonomy for Objectives Section
@@ -694,7 +694,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
                 sectionTitle = 'No Name';
             }
             if (sectionTitle.length > 25) {
-                sectionTitle = sectionTitle.substring(0, 23) + '...';
+                sectionTitle = sectionTitle.substring(0, 25);
             }
             newID = sectionTitle.replace(/\W/g, '_');
             if ($(iframeID).contents().find('#' + newID).length > 0) {
@@ -720,7 +720,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             }
             myTitle = myTitle.replace(/_/g, ' ');
             if (myTitle.length > 25) {
-                myTitle = myTitle.substring(0, 23) + '...';
+                myTitle = myTitle.substring(0, 25);
             }
             addSectionControls(myTitle, myValue);
             $('.kl_element_color_pickers').show();
@@ -769,9 +769,12 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         tinyMCE.activeEditor.focus();
         tinyMCE.activeEditor.selection.setContent('<div id="kl_temp_section">' + tinyMCE.activeEditor.selection.getContent() + '</div>');
         tempSection = $(iframeID).contents().find('#kl_temp_section');
-        sectionTitle = $(tempSection).text();
-        if (sectionTitle.length > 25) {
-            sectionTitle = sectionTitle.substring(0, 20) + '...';
+        if ($(tempSection).find('h3:first').length > 0) {
+            sectionTitle = $(tempSection).find('h3:first').text();
+        } else if ($(tempSection).find('h4:first').length > 0) {
+            sectionTitle = $(tempSection).find('h4:first').text();
+        } else {
+            sectionTitle = $(tempSection).text();
         }
         newID = sectionTitle.replace(/\W/g, '_');
         container = $(iframeID).contents().find('#kl_wrapper');
@@ -1033,9 +1036,6 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
                 }
                 // Renumber following div
                 panelTitle = $(this).text();
-                if (panelTitle.length > 20) {
-                    panelTitle = panelTitle.substring(0, 17) + '...';
-                }
                 nextDivClass = $(this).next('div').attr('class');
                 regExpMatch = /\bkl_panel_\b/g;
                 if (nextDivClass.match(regExpMatch)) {
@@ -1046,7 +1046,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
                 $('#kl_accordion_panels').append('<li rel=".kl_panel_' + i + '">' +
                     '<span title="Drag to reorder" class="move_item_link"><img alt="Move" src="/images/move.png?1366214258"></span> ' +
                     '<a href="#" class="kl_acc_mark_current' + identifyCurrent + '" rel=".kl_panel_' + i + '" title="Mark as default open panel"><i class="icon-check"></i><span class="screenreader-only">Mark as default open</span></a> ' +
-                    panelTitle +
+                    '<span class="kl_section_title">' + panelTitle + '</span>' +
                     '<a class="kl_delete_acc_panel kl_remove icon-end pull-right" rel=".kl_panel_' + i + '" href="#" data-tooltip="left" title="Delete this panel.">' +
                     '    <span class="screenreader-only">Delete Accordion Panel</span>' +
                     '</a></li>');
@@ -1080,7 +1080,6 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             deleteAccordion();
             // Insert the new section into the TinyMCE editor at cursor
             tinyMCE.execCommand('mceInsertContent', false, '<div class="kl_custom_accordion"></div><p>&nbsp;</p>');
-            // Bind a change function to bring up the remove button when unchecked
             $('#kl_new_acc_panel').focus();
         }
     }
@@ -1119,7 +1118,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             scrollToElement('.' + newPanelClass);
             highlightNewElement('.' + newPanelClass);
             deleteAccPanel();
-            $('#kl_accordion_panels').html('');
+            $('#kl_accordion_panels').focus().html('');
             getAccPanels();
             bindHover();
         }
@@ -1190,7 +1189,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
                 $('#kl_tab_panels').append('<li rel=".kl_tab_' + i + '">' +
                     sortableImage +
                     '<a href="#" class="kl_tab_mark_current' + identifyCurrent + '" rel="kl_tab_' + i + '" title="Mark as default open tab"><i class="icon-check"></i><span class="screenreader-only">Mark as default open</span></a> ' +
-                    panelTitle +
+                    '<span class="kl_section_title">' + panelTitle + '</span>' +
                     '<a class="kl_delete_tab_panel kl_remove icon-end pull-right" rel=".kl_tab_' + i + '" href="#" data-tooltip="left" title="Delete this panel.">' +
                     '    <span class="screenreader-only">Delete Tab Panel</span>' +
                     '</a></li>');
@@ -1261,7 +1260,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         // Create an <li> for this section in the Sections List
             $('#kl_tab_panels').append('<li rel=".' + newPanelClass + '"><span title="Drag to reorder" class="move_item_link"><img alt="Move" src="/images/move.png?1366214258"></span> ' +
                 '<a href="#" class="kl_tab_mark_current" rel="' + newPanelClass + '" title="Mark as default open tab"><i class="icon-check"></i><span class="screenreader-only">Mark as default open</span></a> ' +
-                newTabPanelName +
+                '<span class="kl_section_title">' + newTabPanelName + '</span>' +
                 '<a class="kl_delete_tab_panel kl_remove icon-end pull-right" rel=".' + newPanelClass + '" href="#" data-tooltip="left" title="Delete this panel.">' +
                 '    <span class="screenreader-only">Delete Tab Panel</span>' +
                 '</a></li>');
@@ -2115,7 +2114,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
                 tooltipText = 'Text Linked';
                 linkIcon = 'fa fa-link';
             }
-            linkID = displayText.replace(' ', '_');
+            linkID = displayText.replace(/ /g, '_');
             $('#kl_nav_list_items').append('<li rel="#kl_nav_' + linkID +
                 '"><span title="Drag to reorder" class="move_item_link" data-tooltip="top" title="' + tooltipText + '"><img alt="Move" src="/images/move.png?1366214258"></span>&nbsp;' +
                 displayText +
@@ -2660,6 +2659,17 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         }
         scrollToElement('#kl_progress_bar');
     }
+    function bindProgressBarDelete() {
+
+        $('.kl_progress_bar_delete_section').unbind("click").click(function (e) {
+            e.preventDefault();
+            var connectedSection = $(this).attr('rel');
+            $(this).parents('tr').remove();
+            $(iframeID).contents().find('.' + connectedSection + '_value').remove();
+            $(iframeID).contents().find('.' + connectedSection + '_label').remove();
+            $('.kl_progress_bar_delete_section').last().show();
+        });
+    }
     function addProgressBarSection() {
         var newBarSectionNum = $(iframeID).contents().find('.kl_progress_bar_wrapper .kl_progress_bar_value').length,
             newBarSectionHtml = '<div class="kl_progress_bar_value kl_progress_bar_' + newBarSectionNum + '_value" style="width: 20%; background: #003366; text-align: right; height:5px; float:left;">' +
@@ -2675,14 +2685,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
                 '</tr>';
         $('#kl_progress_bar_section_controls tbody').append(newSectionControls);
         $(iframeID).contents().find('.kl_progress_bar_wrapper').append(newBarSectionHtml);
-        $('.kl_progress_bar_delete_section').unbind("click").click(function (e) {
-            e.preventDefault();
-            var connectedSection = $(this).attr('rel');
-            $(this).parents('tr').remove();
-            $(iframeID).contents().find('#' + connectedSection + '_value').remove();
-            $(iframeID).contents().find('#' + connectedSection + '_label').remove();
-            $('.kl_progress_bar_delete_section').last().show();
-        });
+        bindProgressBarDelete();
         if ($(iframeID).contents().find('.kl_progress_bar_wrapper_outside_labels').length > 0) {
             pbLabelsInside();
             pbLabelsOutside();
@@ -2744,6 +2747,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             $('.kl_progress_bar_height[rel="' + pbHeight + '"]').addClass('active');
             $('.kl_progress_bar_delete_section').last().show();
             bindWidthUpdate();
+            bindProgressBarDelete();
         }
     }
    ////// On Ready/Click functions  //////
@@ -2869,7 +2873,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         $(iframeID).contents().find('#' + quickCheckNum + ' .kl_quick_check_answer_wrapper').each(function (i) {
             answerText = $(this).find('.kl_quick_check_answer').text();
             if (answerText.length > 25) {
-                answerText = answerText.substring(0, 20) + '...';
+                answerText = answerText.substring(0, 25);
             }
             newClass = 'kl_quick_check_answer_wrapper kl_quick_check_answer_' + i;
             thisIsCorrect = '';
@@ -4022,19 +4026,19 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         if (isCurrent === true) {
             markCurrent = ' kl_current';
         }
-        if (moduleTitle.length > 23) {
-            moduleTitle = moduleTitle.substring(0, 18) + '&hellip;';
-        }
+        // if (moduleTitle.length > 23) {
+        //     moduleTitle = moduleTitle.substring(0, 18) + '&hellip;';
+        // }
         $('#kl_modules_list_controls').append('<li rel="#' + moduleID + '">' +
             '<a href="#" class="kl_modules_choose_dates_trigger" rel="#kl_module_dates_' + moduleID + '" data-tooltip="top" title="Show/hide date fields"><i class="fa fa-calendar"></i><span class="screenreader-only">Choose start/end dates</a>' +
             '<a href="#" class="kl_modules_list_mark_current' + markCurrent  + '" rel="#' + moduleID + '" data-tooltip="top" title="Mark as current week"><i class="icon-check"></i><span class="screenreader-only">Mark as Current Week </span></a>&nbsp;' +
-            moduleTitle +
+            '<span class="kl_section_title">' + moduleTitle + '</span>' +
             '<a href="#" class="kl_remove pull-right kl_modules_list_remove_item" rel="#' + moduleID + '" data-tooltip="top" title="Remove ' + moduleTitle + '">' +
             '<i class="icon-end"></i><span class="screenreader-only">Remove item</a>' +
             '<div id="kl_module_dates_' + moduleID + '" rel="#' + moduleID + '"  class="kl_modules_choose_dates hide">' +
-            '    <label for="kl_modules_from' + moduleID + '" style="display:none;">From</label>' +
+            '    <label for="kl_modules_from' + moduleID + '" class="screenreader-only">From</label>' +
             '    <input type="text" id="kl_modules_from' + moduleID + '" class="kl_modules_from input-small" name="kl_modules_from" placeholder="Start Date" value="' + moduleStartDate + '">' +
-            '    <label for="kl_modules_to' + moduleID + '">to</label>' +
+            '    <label for="kl_modules_to' + moduleID + '" class="screenreader-only">to</label>' +
             '    <input type="text" id="kl_modules_to' + moduleID + '" class="kl_modules_to input-small" name="kl_modules_to" placeholder="End Date" value="' + moduleStopDate + '">' +
             '</div>' +
             '</li>');
@@ -4104,9 +4108,9 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
                 if (connectedItem === undefined) {
                 // if (typeof connectedItem === 'undefined') {
                     newID = $(this).text();
-                    if (newID.length > 15) {
-                        newID = newID.substring(0, 15);
-                    }
+                    // if (newID.length > 15) {
+                    //     newID = newID.substring(0, 15);
+                    // }
                     // make sure ID doesn't already exist
                     if ($('#'.newID).length > 0) {
                         newID = newID + '1';
@@ -5160,7 +5164,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         }
     }
     function updateCustomCss() {
-        // // old custom css flag
+        // old custom css flag
         if ($(iframeID).contents().find('#usu-custom-css').length > 0 || $(iframeID).contents().find('#custom-css').length > 0) {
             alert('This course is using a course level css file. You may need to adjust your custom css because of this update.');
         }
@@ -5168,20 +5172,26 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             if ($(iframeID).contents().find('#usu-custom-css').text().length > 1) {
                 // if it has contents unwrap them
                 $(iframeID).contents().find('#usu-custom-css').contents().unwrap();
-                $(iframeID).contents().find('body').prepend('<div id="custom-css">&nbsp;</div>');
+                $(iframeID).contents().find('body').prepend('<div id="kl_custom_css">&nbsp;</div>');
 
             }
             // If the step above didn't fix it, remove old and add new
             $(iframeID).contents().find('#usu-custom-css').remove();
-            if ($(iframeID).contents().find('#usu-custom-css').length === 0) {
-                $(iframeID).contents().find('body').prepend('<div id="custom-css">&nbsp;</div>');
+            if ($(iframeID).contents().find('#usu-custom-css').length === 0 && $(iframeID).contents().find('#kl_custom_css').length === 0) {
+                $(iframeID).contents().find('body').prepend('<div id="kl_custom_css">&nbsp;</div>');
             }
             $('#kl_custom_css_add').prop('checked', true);
         }
         elementUpdate('#custom-css', '#kl_custom_css');
     }
+    function updateNavIcons(liClass, replacementIcon) {
+        if ($(iframeID).contents().find('.' + liClass).length > 0) {
+            $(iframeID).contents().find('.' + liClass + ' a').addClass(replacementIcon);
+        }
+    }
     function updateWrapper() {
         var i,
+            updateContents,
             oldThemesArray = [
                 '.generic',
                 '.bookmark',
@@ -5213,10 +5223,11 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         clearAttribute('.title_banner');
         elementUpdate('.subj-text', '.kl_mod_text');
         elementUpdate('.subj-num', '.kl_mod_num');
+        elementUpdate('.usu-mod-num', '.kl_mod_num');
         elementUpdate('#banner-right', '#kl_banner_right');
         elementUpdate('#usu-home-img', '#kl_banner_image');
-        clearAttribute('.banner_image');
         elementUpdate('#usu-home-nav', '#kl_navigation');
+        elementUpdate('#usu-template-nav', '#kl_navigation');
         clearAttribute('.navigation');
         elementUpdate('#usu-modules-grid', '#kl_modules');
         elementUpdate('.quick_links', '.kl_modules_quick_links');
@@ -5234,9 +5245,13 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         // Update Wrapper
         elementUpdate('#template-wrapper', '#kl_wrapper');
         elementUpdate('#usu-template-page', '#kl_wrapper');
-        // Remove content wrapper from wiki pages
+        // Remove content wrapper
         if ($(iframeID).contents().find('#template-content').length > 0) {
             $(iframeID).contents().find('#template-content').contents().unwrap();
+        }
+        if ($(iframeID).contents().find('#usu-template-wrap').length > 0) {
+            elementUpdate('#usu-template-wrap', '#kl_wrapper');
+            $(iframeID).contents().find('#kl_banner').prependTo($(iframeID).contents().find('#kl_wrapper'));
         }
         // Theme Classes 
         elementUpdate('.generic', '.kl_generic');
@@ -5259,6 +5274,36 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         elementUpdate('.panel-nav-template', '.kl_fp_panel_nav');
         elementUpdate('.emta', '.kl_emta');
         clearAttribute('.usu-template-flex');
+        // Old Banners with multiple h2 tags
+        if($(iframeID).contents().find('#kl_banner h2').length > 1){
+            if ($(iframeID).contents().find('#home-left-num').length > 0) {
+                updateContents = $(iframeID).contents().find('#home-left-num').html();
+                console.log(updateContents);
+                $(iframeID).contents().find('#home-left-num').replaceWith('<span id="kl_banner_left"><span class="kl_mod_text">' + updateContents + '</span></span>');
+            }
+            if ($(iframeID).contents().find('#home-right').length > 0) {
+                updateContents = $(iframeID).contents().find('#home-right').html();
+                console.log(updateContents);
+                $(iframeID).contents().find('#home-right').replaceWith('<span id="kl_banner_right">' + updateContents + '</span>');
+            }
+            if ($(iframeID).contents().find('#page-left').length > 0) {
+                updateContents = $(iframeID).contents().find('#page-left').html();
+                console.log(updateContents);
+                $(iframeID).contents().find('#page-left').replaceWith('<span id="kl_banner_left"><span class="kl_mod_text">' + updateContents + '</span></span>');
+            }
+            if ($(iframeID).contents().find('#page-right').length > 0) {
+                updateContents = $(iframeID).contents().find('#page-right').html();
+                console.log(updateContents);
+                $(iframeID).contents().find('#page-right').replaceWith('<span id="kl_banner_right">' + updateContents + '</span>');
+            }
+            updateContents = $(iframeID).contents().find('#kl_banner').html();
+            $(iframeID).contents().find('#kl_banner').html('<h2>' + updateContents + '</h2>');
+            $(iframeID).contents().find('#kl_banner_left').appendTo($(iframeID).contents().find('#kl_banner h2'));
+            $(iframeID).contents().find('.kl_mod_text').appendTo($(iframeID).contents().find('#kl_banner_left'));
+            $(iframeID).contents().find('.kl_mod_num').appendTo($(iframeID).contents().find('#kl_banner_left'));
+            $(iframeID).contents().find('#kl_banner_right').appendTo($(iframeID).contents().find('#kl_banner h2'));
+            $(iframeID).contents().find('#kl_banner br').remove();
+        }
         // Banner
         elementUpdate('#module-page-banner', '#kl_banner');
         elementUpdate('#module-page-banner', '#kl_banner');
@@ -5270,11 +5315,33 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         if ($(iframeID).contents().find('#usu-template-banner-middle').length > 0) {
             $(iframeID).contents().find('#usu-template-banner-middle').remove();
         }
+        clearAttribute('.banner_image');
         elementUpdate('.banner-right', '#kl_banner_right');
         elementUpdate('#page-right', '#kl_banner_right');
         elementUpdate('#banner-bottom', '#kl_banner_bottom');
         elementUpdate('#emta-title', '#kl_banner_bottom');
         elementUpdate('#description', '#kl_description');
+        // EMTA Banners
+        if ($(iframeID).contents().find('#kl_banner_bottom h2').length > 0) {
+            updateContents = $(iframeID).contents().find('#kl_banner_bottom h2').html();
+            $(iframeID).contents().find('#kl_banner_bottom h2').replaceWith('<h3>' + updateContents + '</h3>');
+        }
+        if ($(iframeID).contents().find('#kl_banner').hasClass('kl_emta')) {
+            $(iframeID).contents().find('#kl_banner').removeClass('kl_emta');
+            $(iframeID).contents().find('#kl_wrapper').addClass('kl_emta');
+        }
+        if ($(iframeID).contents().find('#kl_banner_bottom').length > 0) {
+            $(iframeID).contents().find('#kl_banner_bottom').appendTo($(iframeID).contents().find('#kl_banner'));
+            $(iframeID).contents().find('.kl_mod_text').appendTo($(iframeID).contents().find('#kl_banner_left'));
+            $(iframeID).contents().find('.kl_mod_num').appendTo($(iframeID).contents().find('#kl_banner_left'));
+            $(iframeID).contents().find('.kl_banner_right').appendTo($(iframeID).contents().find('#kl_banner_left'));
+        }
+        // Update old Icons
+        updateNavIcons('usu-template-nav-start', 'icon-forward');
+        updateNavIcons('usu-template-nav-syllabus', 'icon-syllabus');
+        updateNavIcons('usu-template-nav-modules', 'icon-module');
+        updateNavIcons('usu-template-nav-resources', 'icon-add');
+        
         // Template Sections
         elementUpdate('.introduction', '#kl_introduction');
         elementUpdate('.objectives', '#kl_objectives');
@@ -5749,14 +5816,6 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         contentIcons();
         aboutCustomTools();
         showPageTitle();
-        if (assignmentsPage === true) {
-            // Load tools unique to assignments page
-            console.log('assignments page');
-        }
-        if (discussionsPage === true) {
-            // Load tools unique to discussions page
-            console.log('discussions page');
-        }
         // activate the accordion
 
         initializeToolsAccordion();
@@ -5821,33 +5880,13 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             if ($('#kl_tools_accordion').length === 0) {
                 $('#right-side').prepend('<a href="#" class="btn btn-primary kl_add_tools"><i class="fa fa-rocket" style="font-size: 18px;"></i> Launch Custom Tools</a>');
                 // Decide which tools to load
-                // Default
-                iframeID = '#editor_box_unique_id_1_ifr';
                 toolsToLoad = 'wiki';
-                if ($('#assignment_description_ifr').length > 0) {
-                    // Assignments
-                    iframeID = '#assignment_description_ifr';
-                    assignmentsPage = true;
-                } else if ($('#discussion-topic-message11_ifr').length > 0) {
-                    // Discussions
-                    iframeID = '#discussion-topic-message11_ifr';
-                    discussionsPage = true;
-                } else if ($('.edit_syllabus_link').length > 0) {
+                if (document.URL.indexOf('/syllabus') > -1) {
                     // Syllabus
-                    iframeID = '#course_syllabus_body_ifr';
                     toolsToLoad = 'syllabus';
-                    $('.kl_add_tools').hide();
-                    $('.edit_syllabus_link').click(function () {
-                        $('.kl_add_tools').fadeIn();
-                        if ($('#kl_tools_wrapper').length > 0) {
-                            $('#kl_tools_wrapper').show();
-                            setupSyllabusTools();
-                        }
-                        // Remove old syllabus tools
-                        if ($('.addUSUTools').length > 0) {
-                            $('.addUSUTools').remove();
-                        }
-                    });
+                    if ($('#kl_tools_wrapper').length > 0) {
+                        setupSyllabusTools();
+                    }
                 }
                 $('.kl_add_tools').unbind("click").click(function (e) {
                     e.preventDefault();
@@ -5862,7 +5901,6 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         });
         // Make some changes before page is saved
         $('.submit').click(function () {
-            // e.preventDefault();
             // Handle when a box was unchecked but the remove button wasn't clicked
             $(iframeID).contents().find('.kl_to_remove').removeClass('kl_to_remove');
             // If the current theme doesn't support bottom-banner, remove it

@@ -54,6 +54,7 @@ function kl_update_progress() {
 // FRONT PAGE MODULE DETAILS
 //// Adaptation of Canvas function to populate due dates and points
 function kl_gatherModuleDetails() {
+    'use strict';
     $.ajaxJSON('/courses/' + coursenum + '/modules/items/assignment_info', 'GET', {}, function (data) {
         $.each(data, function (id, info) {
             $context_module_item = $("#context_module_item_" + id);
@@ -111,7 +112,7 @@ $(function () {
     }
     // Full width images
     $('.kl_image_full_width').css('max-width', '100%');
-    $('#kl_banner_image img').css('max-width', '100%');
+    $('#kl_banner_image img').css('max-width', '100%').addClass('kl_image_full_width');
 
 
     // STUDENT VERIFICATION FORM //
@@ -410,8 +411,6 @@ $(function () {
 
     }
     if ($('.kl_modules_tabbed').length > 0) {
-        // console.log('got here too');
-
         var bgColor = '',
             bgHex = '0F2439',
             textColor = 'FFF';
@@ -424,15 +423,13 @@ $(function () {
         if ($('#kl_banner').length === 0 && $('#kl_navigation').length > 0 || $('#kl_navigation').length > 0 && bgColor === 'rgba(0, 0, 0, 0)') {
             bgColor = $('#kl_navigation').css('background-color');
         }
-        // console.log(bgColor);
         if (bgColor !== '' && bgColor !== 'rgba(0, 0, 0, 0)') {
             bgHex = rgb2hex(bgColor);
-            // console.log(bgHex);
             bgHex = bgHex.replace('#', '');
             textColor = getContrastYIQ(bgHex);
             textColor = getContrast50(bgHex);
         }
-        // console.log(textColor);
+        // Write styles to match template to the page head
         var appendStyle = '<style>' +
             '   #kl_wrapper #kl_modules .ui-tabs-active {background: #' + bgHex + '; }' +
             '   #kl_wrapper #kl_modules ul li.ui-tabs-active a { color: ' + textColor + '}' +
@@ -443,6 +440,7 @@ $(function () {
             '</style>';
         $('head').append(appendStyle);
 
+        // Loop through modules to gather details
         $('.kl_connected_module').each(function () {
             var module_id = $(this).attr('id'),
                 myTitle = $(this).text(),
@@ -452,7 +450,7 @@ $(function () {
             if (typeof explodedTitle[0] !== 'undefined') {
                 $(this).text(explodedTitle[0]);
             }
-
+            // Create tab sections and populate with module items
             $("#kl_modules").append('<div id="kl_tabs_' + module_id + '" />');
             $('#kl_tabs_' + module_id).load('/courses/' + coursenum + '/modules #context_module_' + module_id, function () {
                 $('#kl_modules .delete_prerequisite_link').remove();
@@ -474,12 +472,12 @@ $(function () {
         }
         // Make tabs equal in width
         var maxWidth = 0;
-        $('#kl_modules .ui-tabs-nav li').each(function(){
+        $('#kl_modules .ui-tabs-nav li a').each(function(){
            if ($(this).width() > maxWidth){
              maxWidth = $(this).width();
            }
         });
-        $('#kl_modules .ui-tabs-nav li').each(function(){
+        $('#kl_modules .ui-tabs-nav li a').each(function(){
             $(this).width(maxWidth+3);
         });
 
