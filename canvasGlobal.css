@@ -991,11 +991,24 @@ NOTES:
 /* Navigation */
 #kl_wrapper.kl_fp_panel_nav #kl_navigation { background-color: rgba(255, 255, 255, 0.75); color: #7D110C; }
 #kl_wrapper.kl_fp_panel_nav #kl_navigation a:hover {color: #0088CC; }
-#kl_wrapper.kl_fp_panel_nav #kl_navigation li a {color: #003366;}	
+#kl_wrapper.kl_fp_panel_nav #kl_navigation li a {color: #003366;} 
 
 /***** Template: Responsive banner with horiz nav bar and modules grid *****/
 #kl_wrapper.kl_fp_horizontal_nav #kl_banner {background-color: #7D110C; color: #FFF; }
 #kl_wrapper.kl_fp_horizontal_nav #kl_banner #kl_banner_left {border-right: 5px solid #fff; }
+
+
+/* Panel Nav Template: Responsive homepage banner with transparent nav panel over bg image *****/
+#kl_wrapper.kl_fp_panel_nav_2 #kl_banner {background-color: #7D110C; color: #FFF; }
+#kl_wrapper.kl_fp_panel_nav_2 #kl_banner #kl_banner_left {border-right: 5px solid #fff; }
+/* Navigation */
+#kl_wrapper.kl_fp_panel_nav_2 #kl_navigation { background-color: rgba(255, 255, 255, 0.75); color: #7D110C; }
+#kl_wrapper.kl_fp_panel_nav_2 #kl_navigation a:hover {color: #0088CC; }
+#kl_wrapper.kl_fp_panel_nav_2 #kl_navigation li a {color: #003366;} 
+
+/***** Template: Responsive banner with horiz nav bar and modules grid *****/
+#kl_wrapper.kl_fp_horizontal_nav_2 #kl_banner {background-color: #7D110C; color: #FFF; }
+#kl_wrapper.kl_fp_horizontal_nav_2 #kl_banner #kl_banner_left {border-right: 5px solid #fff; }
 
 
 
