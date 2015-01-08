@@ -1,7 +1,6 @@
 /*jslint browser: true, sloppy: false, eqeq: false, vars: false, maxerr: 50, indent: 4, plusplus: true */
-
 /*global $, jQuery, iframeID, alert, coursenum, console, klToolsPath, globalCSSPath, klFontAwesomePath, tinymce, tinyMCE, klToolsVariables,
-klToolsArrays, vendor_legacy_normal_contrast,  */
+klToolsArrays, vendor_legacy_normal_contrast, afterToolLaunch */
 
 // These tools were designed to facilitate rapid course development in the Canvas LMS
 // Copyright (C) 2014  Kenneth Larsen - Center for Innovative Design and Instruction
@@ -102,7 +101,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
                 timestamp =  +(new Date());
             $head.append($('<link/>', { rel: 'stylesheet', href: klToolsVariables.vendor_legacy_normal_contrast, type: 'text/css' }));
             $head.append($('<link/>', { rel: 'stylesheet', href: klToolsVariables.common_legacy_normal_contrast, type: 'text/css' }));
-            $head.append($('<link/>', { rel: 'stylesheet', href: globalCSSPath + '?' + timestamp, type: 'text/css' }));
+            $head.append($('<link/>', { rel: 'stylesheet', href: globalCSSFile + '?' + timestamp, type: 'text/css' }));
             $head.append($('<link/>', { rel: 'stylesheet', href: klToolsPath + 'css/canvasMCEEditor.css?' + timestamp, type: 'text/css' }));
             $head.append($("<link/>", { rel: "stylesheet", href: klFontAwesomePath, type: 'text/css'}));
             if ($(iframeID).contents().find('#kl_custom_css').length > 0) {
@@ -170,7 +169,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
     // Move the specified editor content to the top
     function scrollToElement(targetElement) {
         $(iframeID).contents().find(targetElement).get(0).scrollIntoView();
-        $('a:contains("HTML Editor");').get(0).scrollIntoView();
+        $('a:contains("HTML Editor")').get(0).scrollIntoView();
     }
     // Adds class to connected section when mouse hovers over sortable lists
     function bindHover() {
@@ -309,10 +308,13 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             color: startingColor,
             showAlpha: true,
             preferredFormat: 'hex',
-            showPalette: true,
+            showPaletteOnly: true,
+            togglePaletteOnly: true,
             showInput: true,
             palette: klToolsVariables.klThemeColors,
             allowEmpty: true,
+            replacerClassName: 'spectrum_trigger',
+            containerClassName: 'spectrum_picker',
             cancelText: 'Close',
             localStorageKey: 'spectrum.wiki',
             move: function (tinycolor) {
@@ -389,7 +391,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             $('.kl_wiki_themes').append('<li id="' + this + '" class="kl_template_theme kl_wiki_theme" rel="' + this +
                 '" data-tooltip="top" title="' + this +
                 '"><img src="' + klToolsPath + 'images/template_thumbs/' +
-                this + '.png" width="45" alt="' + this + '"></li>'); //E. Scull: Removed </a> before </li>
+                this + '.png" width="45" alt="' + this + '"></a></li>');
         });
     }
     // Output themes
@@ -1640,9 +1642,49 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         tinyMCE.DOM.removeClass(parentElement, 'pad-box-mini');
         tinyMCE.DOM.removeClass(parentElement, 'pad-box-micro');
     }
-    function removeContentBox(parentElement) {
-        tinyMCE.DOM.removeClass(parentElement, 'content-box');
-        tinyMCE.DOM.removeClass(parentElement, 'content-box-mini');
+    function changeSpacing(type, direction) {
+        var kl_spacing_val = $('#kl_' + type + '_input_' + direction).val();
+        if ($('#kl_' + type + '_input_' + direction).val() !== '') {
+            kl_spacing_val = kl_spacing_val + 'px';
+        } else if ($('#kl_' + type + '_input_all').val() !== '') {
+            kl_spacing_val = $('#kl_' + type + '_input_all').val() + 'px';
+        }
+        tinyMCE.DOM.setStyle(tinyMCE.activeEditor.selection.getNode(), type + '-' + direction, kl_spacing_val);
+    }
+    function changeAllSpacing(type) {
+        changeSpacing(type, 'top');
+        changeSpacing(type, 'right');
+        changeSpacing(type, 'bottom');
+        changeSpacing(type, 'left');
+    }
+    function clearSpacingInput(type) {
+        $('#kl_' + type + '_input_all').attr('placeholder', '#').val('');
+        $('#kl_' + type + '_input_top').attr('placeholder', '#').val('');
+        $('#kl_' + type + '_input_bottom').attr('placeholder', '#').val('');
+        $('#kl_' + type + '_input_left').attr('placeholder', '#').val('');
+        $('#kl_' + type + '_input_right').attr('placeholder', '#').val('');
+    }
+    function currentSpacing(type) {
+        var kl_spacing_top = tinyMCE.DOM.getStyle(tinyMCE.activeEditor.selection.getNode(), type + '-top', true),
+            kl_spacing_bottom = tinyMCE.DOM.getStyle(tinyMCE.activeEditor.selection.getNode(), type + '-bottom', true),
+            kl_spacing_left = tinyMCE.DOM.getStyle(tinyMCE.activeEditor.selection.getNode(), type + '-left', true),
+            kl_spacing_right = tinyMCE.DOM.getStyle(tinyMCE.activeEditor.selection.getNode(), type + '-right', true),
+            kl_spacing_display_top = kl_spacing_top.replace('px', ''),
+            kl_spacing_display_bottom = kl_spacing_bottom.replace('px', ''),
+            kl_spacing_display_left = kl_spacing_left.replace('px', ''),
+            kl_spacing_display_right = kl_spacing_right.replace('px', '');
+        $('#kl_' + type + '_input_all').attr('placeholder', '#').val('');
+        $('#kl_' + type + '_input_top').attr('placeholder', kl_spacing_display_top).val('');
+        $('#kl_' + type + '_input_bottom').attr('placeholder', kl_spacing_display_bottom).val('');
+        $('#kl_' + type + '_input_left').attr('placeholder', kl_spacing_display_left).val('');
+        $('#kl_' + type + '_input_right').attr('placeholder', kl_spacing_display_right).val('');
+    }
+    function defaultSpacing(type) {
+        tinyMCE.DOM.setStyle(tinyMCE.activeEditor.selection.getNode(), type, '');
+        tinyMCE.DOM.setStyle(tinyMCE.activeEditor.selection.getNode(), type + '-top', '');
+        tinyMCE.DOM.setStyle(tinyMCE.activeEditor.selection.getNode(), type + '-bottom', '');
+        tinyMCE.DOM.setStyle(tinyMCE.activeEditor.selection.getNode(), type + '-left', '');
+        tinyMCE.DOM.setStyle(tinyMCE.activeEditor.selection.getNode(), type + '-right', '');
     }
 
     ////// On Ready/Click functions  //////
@@ -1679,13 +1721,99 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             removePadding(parentElement);
             tinyMCE.DOM.addClass(parentElement, myClass);
         });
-        $('.kl_content_box').unbind("click").click(function (e) {
+        $('#kl_margins_apply').click(function (e) {
             e.preventDefault();
-            myClass = $(this).attr('rel');
-            elementType = $('.kl_border_apply a.active').attr('rel');
-            parentElement = tinyMCE.activeEditor.dom.getParent(tinyMCE.activeEditor.selection.getNode(), elementType);
-            removeContentBox(parentElement);
-            tinyMCE.DOM.addClass(parentElement, myClass);
+            changeAllSpacing('margin');
+        });
+        // $('#kl_margins_current').click(function (e) {
+        //     e.preventDefault();
+        //     currentSpacing('margin');
+        // });
+        $('#kl_margins_clear').click(function (e) {
+            e.preventDefault();
+            clearSpacingInput('margin');
+        });
+        $('#kl_margins_default').click(function (e) {
+            e.preventDefault();
+            defaultSpacing('margin');
+        });
+        $('.kl_margins').each(function () {
+            var direction = $(this).attr('rel');
+            $('#kl_add_margin_' + direction).unbind("click").click(function (e) {
+                e.preventDefault();
+                changeSpacing('margin', direction);
+            });
+            $('#kl_margin_input_' + direction).keydown(function (event) {
+                if (event.keyCode === 13) {
+                    event.preventDefault();
+                    changeSpacing('margin', direction);
+                    return false;
+                }
+            });
+        });
+        $('#kl_add_margin_all').unbind("click").click(function (e) {
+            e.preventDefault();
+            changeAllSpacing('margin');
+        });
+        $('#kl_margin_input_all').keydown(function (event) {
+            if (event.keyCode === 13) {
+                event.preventDefault();
+                changeAllSpacing('margin');
+                return false;
+            }
+        });
+        $('#kl_padding_apply').click(function (e) {
+            e.preventDefault();
+            changeAllSpacing('padding');
+        });
+        // $('#kl_padding_current').click(function (e) {
+        //     e.preventDefault();
+        //     currentSpacing('padding');
+        // });
+        $('#kl_padding_clear').click(function (e) {
+            e.preventDefault();
+            clearSpacingInput('padding');
+        });
+        $('#kl_padding_default').click(function (e) {
+            e.preventDefault();
+            defaultSpacing('padding');
+        });
+        $('.kl_padding').each(function () {
+            var direction = $(this).attr('rel');
+            $('#kl_add_padding_' + direction).unbind("click").click(function (e) {
+                e.preventDefault();
+                changeSpacing('padding', direction);
+            });
+            $('#kl_padding_input_' + direction).keydown(function (event) {
+                if (event.keyCode === 13) {
+                    event.preventDefault();
+                    changeSpacing('padding', direction);
+                    return false;
+                }
+            });
+        });
+        $('#kl_add_padding_all').unbind("click").click(function (e) {
+            e.preventDefault();
+            changeAllSpacing('padding');
+        });
+        $('#kl_padding_input_all').keydown(function (event) {
+            if (event.keyCode === 13) {
+                event.preventDefault();
+                changeAllSpacing('padding');
+                return false;
+            }
+        });
+        $('.kl_borders_spacing_tabs a').click(function (e) {
+            e.preventDefault();
+            var connectedElement = $(this).attr('rel');
+            $('.kl_borders_spacing_tabs a').removeClass('active');
+            $(this).addClass('active');
+            $('.kl_border_spacing_section').hide();
+            $('#' + connectedElement).show();
+        });
+        tinyMCE.activeEditor.onNodeChange.add(function () {
+            currentSpacing('margin');
+            currentSpacing('padding');
         });
     }
 
@@ -1712,54 +1840,144 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             '    </a>' +
             '</h3>' +
             '<div class="kl_borders_spacing">' +
-            '<div class="btn-group-label">' +
-            '    <span>Apply to:</span>' +
-            '    <div class="btn-group kl_border_apply">' +
-            '        <a href="#" class="btn btn-mini active" rel="p, h2, h3, h4, h5">Paragraph/Heading</a>' +
-            '        <a href="#" class="btn btn-mini" rel="div">DIV</a>' +
-            '    </div>' +
-            '</div>' +
-            '<div>' +
-            '    <div class="btn-group-label kl_margin_bottom"><span>Border:</span>' +
-            '        <div class="btn-group">' +
-            '            <a href="#" class="btn btn-mini kl_custom_borders" rel="border border-trbl" data-tooltip="top" title="Full Borders"><span class="border border-trbl">&nbsp; &nbsp; &nbsp; </span></a>' +
-            '            <a href="#" class="btn btn-mini kl_custom_borders" rel="border border-rbl" data-tooltip="top" title="Right, Bottom and Left Borders"><span class="border border-rbl">&nbsp; &nbsp; &nbsp; </span></a>' +
-            '            <a href="#" class="btn btn-mini kl_custom_borders" rel="border border-tbl" data-tooltip="top" title="Top, Bottom, and Left Borders"><span class="border border-tbl">&nbsp; &nbsp; &nbsp; </span></a>' +
-            '            <a href="#" class="btn btn-mini kl_custom_borders" rel="border border-tl" data-tooltip="top" title="Top and Left Borders"><span class="border border-tl">&nbsp; &nbsp; &nbsp; </span></a>' +
-            '            <a href="#" class="btn btn-mini kl_custom_borders" rel="border border-b" data-tooltip="top" title="Bottom Border"><span class="border border-b">&nbsp; &nbsp; &nbsp; </span></a>' +
-            '            <a href="#" class="btn btn-mini kl_custom_borders" rel="border border-t" data-tooltip="top" title="Top Border"><span class="border border-t">&nbsp; &nbsp; &nbsp; </span></a>' +
-            '            <a href="#" class="btn btn-mini kl_remove icon-end kl_custom_borders" rel="" data-tooltip="top" title="Remove borders from selected paragraph or heading.">&nbsp;</a>' +
-            '        </div>' +
-            '    </div>' +
-            '    <div class="btn-group-label kl_margin_bottom"><span>Border Radius:</span>' +
-            '        <div class="btn-group">' +
-            '            <a href="#" class="btn btn-mini kl_custom_border_radius" rel="border-round" data-tooltip="top" title="All corners rounded"><span class="border border-trbl border-round">&nbsp; &nbsp; &nbsp; &nbsp; </span></a>' +
-            '            <a href="#" class="btn btn-mini kl_custom_border_radius" rel="border-round-b" data-tooltip="top" title="Bottom corners rounded"><span class="border border-trbl border-round-b">&nbsp; &nbsp; &nbsp; &nbsp; </span></a>' +
-            '            <a href="#" class="btn btn-mini kl_custom_border_radius" rel="border-round-t" data-tooltip="top" title="Top corners rounded"><span class="border border-trbl border-round-t">&nbsp; &nbsp; &nbsp; &nbsp; </span></a>' +
-            '            <a href="#" class="btn btn-mini kl_custom_border_radius" rel="border-round-tl" data-tooltip="top" title="Top Left corner rounded"><span class="border border-trbl border-round-tl">&nbsp; &nbsp; &nbsp; &nbsp; </span></a>' +
-            '            <a href="#" class="btn btn-mini kl_remove icon-end kl_custom_border_radius" rel="" data-tooltip="top" title="Remove border radius from selected paragraph or heading.">&nbsp;</a>' +
-            '        </div>' +
-            '    </div>' +
-            '    <div class="btn-group-label kl_margin_bottom"><span>Padding:</span>' +
-            '        <div class="btn-group">' +
-            '            <a href="#" class="btn btn-mini kl_custom_padding" rel="pad-box-mega">Mega</a>' +
-            '            <a href="#" class="btn btn-mini kl_custom_padding" rel="pad-box">Normal</a>' +
-            '            <a href="#" class="btn btn-mini kl_custom_padding" rel="pad-box-mini">Mini</a>' +
-            '            <a href="#" class="btn btn-mini kl_custom_padding" rel="pad-box-micro">Micro</a>' +
-            '            <a href="#" class="btn btn-mini kl_remove icon-end kl_custom_padding" rel="" data-tooltip="top" title="Remove padding from selected paragraph or heading.">&nbsp;</a>' +
-            '        </div>' +
-            '    </div>' +
-            '    <div class="btn-group-label kl_margin_bottom"><span>Margin:</span><br>' +
-            '        <div class="btn-group">' +
-            '            <a href="#" class="btn btn-mini kl_content_box" rel="content-box" data-tooltip="top" title="Content boxes automatically clear their floated children and have default margins.">Regular</a>' +
-            '            <a href="#" class="btn btn-mini kl_content_box" rel="content-box-mini" data-tooltip="top" title="A mini content box has half the margin of the regular content box.">Mini</a>' +
-            '            <a href="#" class="btn btn-mini kl_remove icon-end kl_content_box" rel="" data-tooltip="top" title="Remove content box from selected paragraph or heading.">&nbsp;</a>' +
-            '        </div>' +
-            '    </div>' +
-            '</div>' +
-            '<div class="kl_instructions_wrapper">' +
-            '   <p class="kl_instructions">Place your <span class="text-success"><strong>cursor</strong></span> within the element you want to edit.</p>' +
-            '</div>' +
+            '   <div class="btn-group kl_borders_spacing_tabs kl_margin_bottom">' +
+            '        <a href="#" class="btn btn-small" rel="kl_borders">Borders</a>' +
+            '        <a href="#" class="btn btn-small" rel="kl_padding">Padding</a>' +
+            '        <a href="#" class="btn btn-small active" rel="kl_margins">Margins</a>' +
+            '   </div>' +
+            '   <div class="kl_margin_top">' +
+            '       <div id="kl_borders" class="kl_border_spacing_section" style="display:none;">' +
+            '           <div class="btn-group-label kl_margin_bottom"><span>Borders:</span>' +
+            '               <div class="btn-group">' +
+            '                   <a href="#" class="btn btn-mini kl_custom_borders" rel="border border-trbl" data-tooltip="top" title="Full Borders"><span class="border border-trbl">&nbsp; &nbsp; &nbsp; </span></a>' +
+            '                   <a href="#" class="btn btn-mini kl_custom_borders" rel="border border-rbl" data-tooltip="top" title="Right, Bottom and Left Borders"><span class="border border-rbl">&nbsp; &nbsp; &nbsp; </span></a>' +
+            '                   <a href="#" class="btn btn-mini kl_custom_borders" rel="border border-tbl" data-tooltip="top" title="Top, Bottom, and Left Borders"><span class="border border-tbl">&nbsp; &nbsp; &nbsp; </span></a>' +
+            '                   <a href="#" class="btn btn-mini kl_custom_borders" rel="border border-tl" data-tooltip="top" title="Top and Left Borders"><span class="border border-tl">&nbsp; &nbsp; &nbsp; </span></a>' +
+            '                   <a href="#" class="btn btn-mini kl_custom_borders" rel="border border-b" data-tooltip="top" title="Bottom Border"><span class="border border-b">&nbsp; &nbsp; &nbsp; </span></a>' +
+            '                   <a href="#" class="btn btn-mini kl_custom_borders" rel="border border-t" data-tooltip="top" title="Top Border"><span class="border border-t">&nbsp; &nbsp; &nbsp; </span></a>' +
+            '                   <a href="#" class="btn btn-mini kl_remove icon-end kl_custom_borders" rel="" data-tooltip="top" title="Remove borders from selected paragraph or heading.">&nbsp;</a>' +
+            '               </div>' +
+            '           </div>' +
+            '           <div class="btn-group-label kl_margin_bottom"><span>Border Radius:</span>' +
+            '               <div class="btn-group">' +
+            '                   <a href="#" class="btn btn-mini kl_custom_border_radius" rel="border-round" data-tooltip="top" title="All corners rounded"><span class="border border-trbl border-round">&nbsp; &nbsp; &nbsp; &nbsp; </span></a>' +
+            '                   <a href="#" class="btn btn-mini kl_custom_border_radius" rel="border-round-b" data-tooltip="top" title="Bottom corners rounded"><span class="border border-trbl border-round-b">&nbsp; &nbsp; &nbsp; &nbsp; </span></a>' +
+            '                   <a href="#" class="btn btn-mini kl_custom_border_radius" rel="border-round-t" data-tooltip="top" title="Top corners rounded"><span class="border border-trbl border-round-t">&nbsp; &nbsp; &nbsp; &nbsp; </span></a>' +
+            '                   <a href="#" class="btn btn-mini kl_custom_border_radius" rel="border-round-tl" data-tooltip="top" title="Top Left corner rounded"><span class="border border-trbl border-round-tl">&nbsp; &nbsp; &nbsp; &nbsp; </span></a>' +
+            '                   <a href="#" class="btn btn-mini kl_remove icon-end kl_custom_border_radius" rel="" data-tooltip="top" title="Remove border radius from selected paragraph or heading.">&nbsp;</a>' +
+            '               </div>' +
+            '           </div>' +
+            '       </div>' +
+            '       <div id="kl_padding" class="kl_border_spacing_section" style="display:none;">' +
+            '           <h4>Padding:</h4>' +
+            '           <div class="btn-group">' +
+            '               <button id="kl_padding_current" class="btn btn-mini hide" data-tooltip="top" title="Populate Fields based on current element">Current</button>' +
+            '               <button id="kl_padding_apply" class="btn btn-mini" data-tooltip="top" title="Apply Entered values to current element">Apply</button>' +
+            '               <button id="kl_padding_clear" class="btn btn-mini" data-tooltip="top" title="Clear padding input fields">Clear</button>' +
+            '               <button id="kl_padding_default" class="btn btn-mini" data-tooltip="top" title="Reset current element&rsquo;s padding to default">Default</button>' +
+            '           </div>' +
+            '           <div class="btn-group-label kl_margin_bottom kl_margin_top"><span>Identical Padding:</span><br>' +
+            '                <form class="form-inline input-append">' +
+            '                   <input id="kl_padding_input_all" class="kl_padding_all kl_input_small" type="text" placeholder="#">' +
+            '                   <a href="#" id="kl_add_padding_all" class="btn add-on" data-tooltip="top" ' +
+            '                       title="Apply padding to all sides">' +
+            '                       <i class="icon-add"></i> All' +
+            '                   </a>' +
+            '                </form>' +
+            '           </div>' +
+            '           <div class="btn-group-label kl_margin_bottom" style="clear:left;"><span>Individual Padding:</span><br>' +
+            '               <div style="text-align:center;">' +
+            '                   <div class="input-append" style="margin-bottom:3px;">' +
+            '                      <input id="kl_padding_input_top" class="kl_padding kl_input_small" type="text" rel="top" placeholder="#">' +
+            '                      <a href="#" id="kl_add_padding_top" class="btn add-on" data-tooltip="top" ' +
+            '                          title="Apply top padding to selected element">' +
+            '                          <i class="icon-add"></i> Top' +
+            '                      </a>' +
+            '                   </div>' +
+            '                   <div class="input-append" style="float:left;margin-bottom:3px;">' +
+            '                      <input id="kl_padding_input_left" class="kl_padding kl_input_small" type="text" rel="left" placeholder="#">' +
+            '                      <a href="#" id="kl_add_padding_left" class="btn add-on" data-tooltip="top" ' +
+            '                          title="Apply left padding to selected element">' +
+            '                          <i class="icon-add"></i> Left' +
+            '                      </a>' +
+            '                   </div>' +
+            '                   <div class="input-append" style="float:right;margin-bottom:3px;">' +
+            '                      <input id="kl_padding_input_right" class="kl_padding kl_input_small" type="text" rel="right" placeholder="#">' +
+            '                      <a href="#" id="kl_add_padding_right" class="btn add-on" data-tooltip="top" ' +
+            '                          title="Apply right padding to selected element">' +
+            '                          <i class="icon-add"></i> Right' +
+            '                      </a>' +
+            '                   </div>' +
+            '                   <div class="input-append" style="clear:both;">' +
+            '                      <input id="kl_padding_input_bottom" class="kl_padding kl_input_small" type="text" rel="bottom" placeholder="#">' +
+            '                      <a href="#" id="kl_add_padding_bottom" class="btn add-on" data-tooltip="top" ' +
+            '                          title="Apply bottom padding to selected element">' +
+            '                          <i class="icon-add"></i> Bottom' +
+            '                      </a>' +
+            '                   </div>' +
+            '               </div>' +
+            '           </div>' +
+            '       </div>' +
+            '       <div id="kl_margins" class="kl_border_spacing_section">' +
+            '           <h4>Margins:</h4>' +
+            '           <div class="btn-group">' +
+            '               <button id="kl_margins_current" class="btn btn-mini hide" data-tooltip="top" title="Populate Fields based on current element">Current</button>' +
+            '               <button id="kl_margins_apply" class="btn btn-mini" data-tooltip="top" title="Apply Entered values to current element">Apply</button>' +
+            '               <button id="kl_margins_clear" class="btn btn-mini" data-tooltip="top" title="Clear margin input fields">Clear</button>' +
+            '               <button id="kl_margins_default" class="btn btn-mini" data-tooltip="top" title="Reset current element&rsquo;s margins to default">Default</button>' +
+            '           </div>' +
+            '           <div class="btn-group-label kl_margin_bottom kl_margin_top"><span>Identical Margins:</span><br>' +
+            '                <div class="input-append">' +
+            '                   <input id="kl_margin_input_all" class="kl_margins_all kl_input_small" type="text" placeholder="#">' +
+            '                   <a href="#" id="kl_add_margin_all" class="btn add-on" data-tooltip="top" ' +
+            '                       title="Apply margin to all sides">' +
+            '                       <i class="icon-add"></i> All' +
+            '                   </a>' +
+            '                </div>' +
+            '           </div>' +
+            '           <div class="btn-group-label kl_margin_bottom" style="clear:left;"><span>Individual Margins:</span><br>' +
+            '               <div style="text-align:center;">' +
+            '                   <div class="input-append" style="margin-bottom:3px;">' +
+            '                      <input id="kl_margin_input_top" class="kl_margins kl_input_small" type="text" rel="top" placeholder="#">' +
+            '                      <a href="#" id="kl_add_margin_top" class="btn add-on" data-tooltip="top" ' +
+            '                          title="Apply top margin to selected element">' +
+            '                          <i class="icon-add"></i> Top' +
+            '                      </a>' +
+            '                   </div>' +
+            '                   <div class="input-append" style="float:left; margin-bottom:3px;">' +
+            '                      <input id="kl_margin_input_left" class="kl_margins kl_input_small" type="text" rel="left" placeholder="#">' +
+            '                      <a href="#" id="kl_add_margin_left" class="btn add-on" data-tooltip="top" ' +
+            '                          title="Apply left margin to selected element">' +
+            '                          <i class="icon-add"></i> Left' +
+            '                      </a>' +
+            '                   </div>' +
+            '                   <div class="input-append" style="float:right; margin-bottom:3px;">' +
+            '                      <input id="kl_margin_input_right" class="kl_margins kl_input_small" type="text" rel="right" placeholder="#">' +
+            '                      <a href="#" id="kl_add_margin_right" class="btn add-on" data-tooltip="top" ' +
+            '                          title="Apply right margin to selected element">' +
+            '                          <i class="icon-add"></i> Right' +
+            '                      </a>' +
+            '                   </div>' +
+            '                   <div class="input-append" style="clear:both;">' +
+            '                      <input id="kl_margin_input_bottom" class="kl_margins kl_input_small" type="text" rel="bottom" placeholder="#">' +
+            '                      <a href="#" id="kl_add_margin_bottom" class="btn add-on" data-tooltip="top" ' +
+            '                          title="Apply bottom margin to selected element">' +
+            '                          <i class="icon-add"></i> Bottom' +
+            '                      </a>' +
+            '                   </div>' +
+            '               </div>' +
+            '           </div>' +
+            '       </div>' +
+            '   </div>' +
+            '   <div class="kl_instructions_wrapper">' +
+            '       <div class="kl_instructions">' +
+            '           <ul>' +
+            '               <li>Place your <span class="text-success"><strong>cursor</strong></span> within the element you want to edit</li>' +
+            '               <li>Use the breadcrumb below the editor to select a parent element</li>' +
+            '               <li class="fa fa-info-circle">For best results, change &ldquo;EDITOR VIEW&rdquo; to &ldquo;Preview&rdquo;</li>' +
+            '          </ul>' +
+            '       </div>' +
+            '   </div>' +
             '</div>';
         $('#kl_tools_accordion').append(toolsAccordionSection);
         bordersAndSpacingReady();
@@ -1767,7 +1985,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
 
 /////////////////////////////////////////////////////////////
 //  BUTTONS                                                //
-///////////////////////////////////////////////////////////// 
+/////////////////////////////////////////////////////////////
 
     ////// Supporting functions  //////
     function removeButtonStyle(parentElement) {
@@ -1855,6 +2073,117 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
     }
 
 /////////////////////////////////////////////////////////////
+//  COLORS                                                 //
+///////////////////////////////////////////////////////////// 
+
+    ////// Supporting functions  //////
+    function initializeElementColorPicker(inputName, attribute) {
+        var chosenColor = '',
+            // startingColor = kl_getColor($(iframeID).contents().find(targetElement), attribute),
+            bgHex,
+            textColor;
+        $(inputName).spectrum({
+            // // color: startingColor,
+            showAlpha: true,
+            preferredFormat: 'hex',
+            showPaletteOnly: true,
+            togglePaletteOnly: true,
+            showInput: true,
+            palette: klToolsVariables.klThemeColors,
+            allowEmpty: true,
+            replacerClassName: 'spectrum_trigger',
+            containerClassName: 'spectrum_picker',
+            cancelText: 'Close',
+            localStorageKey: 'spectrum.wiki',
+            move: function (tinycolor) {
+                $(inputName).val(tinycolor);
+                chosenColor = $(inputName).val();
+                // $(iframeID).contents().find(targetElement).css(attribute, chosenColor);
+                tinyMCE.DOM.setStyle(tinymce.activeEditor.selection.getNode(), attribute, chosenColor);
+                if (attribute === 'background-color') {
+                    bgHex = chosenColor.replace('#', '');
+                    textColor = getContrastYIQ(bgHex);
+                    // $(iframeID).contents().find(targetElement).css('color', textColor);
+                    tinyMCE.DOM.setStyle(tinymce.activeEditor.selection.getNode(), 'color', textColor);
+                }
+                tinyMCE.DOM.setAttrib(tinymce.activeEditor.selection.getNode(), 'data-mce-style', '');
+                // $(iframeID).contents().find(targetElement).removeAttr('data-mce-style');
+            }
+        });
+    }
+
+    ////// On Ready/Click functions  //////
+    function colorsReady() {
+        $('.defaultSkin table.mceLayout .mceStatusbar div').show();
+        $('.defaultSkin table.mceLayout .mceStatusbar div').closest('tr').addClass('kl_mce_path_wrapper');
+        $('#' + tinyMCE.activeEditor.id + '_path_voice').hide();
+        $('#' + tinyMCE.activeEditor.id + '_path_row span:nth-of-type(2)').hide();
+        initializeElementColorPicker('#kl_selected_element_text_color', 'color');
+        initializeElementColorPicker('#kl_selected_element_bg_color', 'background-color');
+        initializeElementColorPicker('#kl_selected_element_border_color', 'border-color');
+        $('.kl_remove_color').click(function (e) {
+            e.preventDefault();
+            tinyMCE.DOM.setStyle(tinymce.activeEditor.selection.getNode(), 'background-color', '');
+            tinyMCE.DOM.setStyle(tinymce.activeEditor.selection.getNode(), 'color', '');
+            tinyMCE.DOM.setStyle(tinymce.activeEditor.selection.getNode(), 'border-color', '');
+            tinyMCE.DOM.setAttrib(tinymce.activeEditor.selection.getNode(), 'data-mce-style', '');
+        });
+    }
+
+    ////// Custom Tools Accordion tab setup  //////
+    function colors() {
+        var addAccordionSection = '<h3 class="kl_wiki">' +
+            'Colors' +
+            '    <a class="help pull-right kl_tools_help" data-tooltip=\'{"tooltipClass":"popover right", "position":"right"}\'' +
+            '      title="<div class=\'popover-title\'>Colors</div>' +
+            '        <div class=\'popover-content\'>' +
+            '            <p>Change the background or text color of page elements.</p>' +
+            '            <p>To change a color:<p>' +
+            '            <ol>' +
+            '                <li>Select an existing link that you would like turned into a button.</li>' +
+            '                <li>Click on the button style of your choice.</li>' +
+            '            </ol>' +
+            '        </div>">' +
+            '      &nbsp;<span class="screenreader-only">About Colors.</span>' +
+            '    </a>' +
+            '</h3>' +
+            '<div id="kl_custom_buttons">' +
+            '   <div class="btn-group-label kl_btn_examples kl_margin_bottom">' +
+            '       <span>Style:</span><br>' +
+            '       <table class="table table-striped table-condensed">' +
+            '       <thead><tr><th>Aspect</th><th>Color</th></tr></thead>' +
+            '           <tbody>' +
+            '               <tr>' +
+            '               </tr>' +
+            '                   <td><label for="kl_selected_element_bg_color">Background:</label></td>' +
+            '                   <td><input type="text" id="kl_selected_element_bg_color"></td>' +
+            '               <tr>' +
+            '                   <td><label for="kl_selected_element_text_color">Text:</label></td>' +
+            '                   <td><input type="text" id="kl_selected_element_text_color"></td>' +
+            '               </tr>' +
+            '               <tr>' +
+            '                   <td><label for="kl_selected_element_border_color">Border:</label></td>' +
+            '                   <td><input type="text" id="kl_selected_element_border_color"></td>' +
+            '               </tr>' +
+            '           </tbody>' +
+            '       </table>' +
+            '   </div>' +
+            '   <a href="#" class="btn btn-mini kl_remove icon-end kl_remove_color" rel="" data-tooltip="top" ' +
+            '       title="Click this to remove color for selected element."> Remove Custom Colors</a>' +
+            '   <div class="kl_instructions_wrapper">' +
+            '       <div class="kl_instructions">' +
+            '           <ul>' +
+            '               <li>Place the cursor in the element you want to change.</li>' +
+            '               <li>Use the breadcrumb below the editor to select a parent element.</li>' +
+            '           </ul>' +
+            '       </div>' +
+            '   </div>' +
+            '</div>';
+        $('#kl_tools_accordion').append(addAccordionSection);
+        colorsReady();
+    }
+
+////////////////////////////////////////////////////////////
 //  HIGHLIGHTS                                             //
 ///////////////////////////////////////////////////////////// 
 
@@ -4316,16 +4645,16 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
     // Control whether or not to add policies on save
     function insertPolicies() {
         var policies = 'Policies need to be updated in the tools template course.';
-        $.post(klToolsVariables.klApiToolsPath + 'getPage.php', { courseID: klToolsVariables.klToolTemplatesCourseID, pageUrl: 'university-policies-and-procedures' })
+        $.post(klApiToolsPath + 'getPage.php', { courseID: klToolsVariables.klToolTemplatesCourseID, pageUrl: 'policies-and-procedures' })
             .done(function (data) {
                 policies = data;
             });
         $('#edit_course_syllabus_form .btn-primary').click(function () {
             if ($('.kl_syllabus_policies_yes').hasClass('active')) {
                 $(iframeID).contents().find('.universityPolicies').remove();
-                $(iframeID).contents().find('#kl_university_policies').remove();
-                $(iframeID).contents().find('body').append('<div id="kl_university_policies" />');
-                $(iframeID).contents().find('#kl_university_policies').html(policies);
+                $(iframeID).contents().find('#kl_institutional_policies').remove();
+                $(iframeID).contents().find('body').append('<div id="kl_institutional_policies" />');
+                $(iframeID).contents().find('#kl_institutional_policies').html(policies);
             }
         });
     }
@@ -4338,9 +4667,9 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
                 '       <a href="#" class="btn btn-small kl_syllabus_policies_yes">Yes<span class="screenreader-only">, include policies and procedures</span></a>' +
                 '       <a href="#" class="btn btn-small kl_syllabus_policies_no">No<span class="screenreader-only">, do not include policies and procedures</span></a>' +
                 '   </div>' +
-                '   <strong> <em>Automatically include University Policies and Procedures when the syllabus is updated.</strong></em>' +
+                '   <strong> <em>Automatically include institutional policies and procedures when the syllabus is updated.</strong></em>' +
                 '</div>');
-            if ($(iframeID).contents().find('#kl_university_policies').length > 0) {
+            if ($(iframeID).contents().find('#kl_institutional_policies').length > 0) {
                 $('.kl_syllabus_policies_yes').addClass('active');
             } else {
                 $('.kl_syllabus_policies_no').addClass('active');
@@ -4353,13 +4682,13 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             $(this).addClass('active');
         });
 
-        // Remove old policies from content area and add styling
+        // Remove old policies from content area
         if ($(iframeID).contents().find('.universityPolicies').length > 0) {
             $(iframeID).contents().find('.universityPolicies').remove();
         }
-        // Remove policies from content area and add styling
-        if ($(iframeID).contents().find('#kl_university_policies').length > 0) {
-            $(iframeID).contents().find('#kl_university_policies').remove();
+        // Remove policies from content area
+        if ($(iframeID).contents().find('#kl_institutional_policies').length > 0) {
+            $(iframeID).contents().find('#kl_institutional_policies').remove();
         }
 
         // Because the syllabus behaves different from other sections, we have to monitor the cancel and update buttons
@@ -5124,473 +5453,6 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
     }
 
 /////////////////////////////////////////////////////////////
-//  CLEANUP FUNCTIONS                                        //
-//  Cleanup content created with previous versons          //
-///////////////////////////////////////////////////////////// 
-
-    // Update existing code to new formats
-    function elementUpdate(checkElement, replaceElement) {
-        if ($(iframeID).contents().find(checkElement).length > 0) {
-            var originalTag = checkElement.replace('#', '').replace('.', ''),
-                replaceTag = replaceElement.replace('#', '').replace('.', '');
-            // If both elements are ID's
-            if (checkElement.indexOf('#') > -1 && replaceElement.indexOf('#') > -1) {
-                $(iframeID).contents().find(checkElement).attr('id', replaceTag);
-            }
-            // If both elements are Classes
-            if (checkElement.indexOf('.') > -1 && replaceElement.indexOf('.') > -1) {
-                $(iframeID).contents().find(checkElement).addClass(replaceTag).removeClass(originalTag);
-            }
-            // If original is an ID and new is a class
-            if (checkElement.indexOf('#') > -1 && replaceElement.indexOf('.') > -1) {
-                $(iframeID).contents().find(checkElement).addClass(replaceTag).attr('id', '');
-            }
-            // If original is a class and new is an ID 
-            if (checkElement.indexOf('.') > -1 && replaceElement.indexOf('#') > -1) {
-                $(iframeID).contents().find(checkElement).removeClass(originalTag).attr('id', replaceTag);
-            }
-        }
-    }
-    function clearAttribute(attributeToRemove) {
-        var originalTag = attributeToRemove.replace('#', '').replace('.', '');
-        if ($(iframeID).contents().find(attributeToRemove).length > 0) {
-            if (attributeToRemove.indexOf('#') > -1) {
-                $(iframeID).contents().find(attributeToRemove).removeAttr('id');
-            }
-            // If both elements are Classes
-            if (attributeToRemove.indexOf('.') > -1) {
-                $(iframeID).contents().find(attributeToRemove).removeClass(originalTag);
-            }
-        }
-    }
-    function updateCustomCss() {
-        // old custom css flag
-        if ($(iframeID).contents().find('#usu-custom-css').length > 0 || $(iframeID).contents().find('#custom-css').length > 0) {
-            alert('This course is using a course level css file. You may need to adjust your custom css because of this update.');
-        }
-        if ($(iframeID).contents().find('#usu-custom-css').length > 0) {
-            if ($(iframeID).contents().find('#usu-custom-css').text().length > 1) {
-                // if it has contents unwrap them
-                $(iframeID).contents().find('#usu-custom-css').contents().unwrap();
-                $(iframeID).contents().find('body').prepend('<div id="kl_custom_css">&nbsp;</div>');
-
-            }
-            // If the step above didn't fix it, remove old and add new
-            $(iframeID).contents().find('#usu-custom-css').remove();
-            if ($(iframeID).contents().find('#usu-custom-css').length === 0 && $(iframeID).contents().find('#kl_custom_css').length === 0) {
-                $(iframeID).contents().find('body').prepend('<div id="kl_custom_css">&nbsp;</div>');
-            }
-            $('#kl_custom_css_add').prop('checked', true);
-        }
-        elementUpdate('#custom-css', '#kl_custom_css');
-    }
-    function updateNavIcons(liClass, replacementIcon) {
-        if ($(iframeID).contents().find('.' + liClass).length > 0) {
-            $(iframeID).contents().find('.' + liClass + ' a').addClass(replacementIcon);
-        }
-    }
-    function updateWrapper() {
-        var i,
-            updateContents,
-            oldThemesArray = [
-                '.generic',
-                '.bookmark',
-                '.apple',
-                '.box-left-aggie-blue',
-                '.box-left-copper',
-                '.box-left-silver',
-                '.square-right-aggie-blue',
-                '.square-right-copper',
-                '.square-right-silver',
-                '.rounded-inset-aggie-blue',
-                '.rounded-inset-copper',
-                '.rounded-inset-silver',
-                '.circle-left-aggie-blue',
-                '.circle-left-copper',
-                '.circle-left-silver',
-                '.horiz-nav-template',
-                '.panel-nav-template'
-            ],
-            numThemes = oldThemesArray.length;
-        for (i = 0; i < numThemes; i++) {
-            if ($(iframeID).contents().find(oldThemesArray[i]).length > 0) {
-                $(iframeID).contents().find(oldThemesArray[i]).attr('id', 'kl_wrapper');
-            }
-        }
-        // Front Page
-        elementUpdate('#usu-template-front', '#kl_wrapper');
-        elementUpdate('#usu-template-banner', '#kl_banner');
-        clearAttribute('.title_banner');
-        elementUpdate('.subj-text', '.kl_mod_text');
-        elementUpdate('.subj-num', '.kl_mod_num');
-        elementUpdate('.usu-mod-num', '.kl_mod_num');
-        elementUpdate('#banner-right', '#kl_banner_right');
-        elementUpdate('#usu-home-img', '#kl_banner_image');
-        elementUpdate('#usu-home-nav', '#kl_navigation');
-        elementUpdate('#usu-template-nav', '#kl_navigation');
-        clearAttribute('.navigation');
-        elementUpdate('#usu-modules-grid', '#kl_modules');
-        elementUpdate('.quick_links', '.kl_modules_quick_links');
-        clearAttribute('.modules_grid');
-        elementUpdate('.connectedModule', '.kl_connected_module');
-        elementUpdate('.activeStart', '.kl_modules_active_start');
-        elementUpdate('.activeStop', '.kl_modules_active_stop');
-        elementUpdate('.contact_footer', '#kl_contact_footer');
-        clearAttribute('.usu-home-footer');
-        elementUpdate('.social_media', '#kl_social_media');
-        clearAttribute('.usu-social');
-        elementUpdate('.image_attribution', '#kl_image_attribution');
-        elementUpdate('.usu-home-attrib', '#kl_image_attribution');
-
-        // Update Wrapper
-        elementUpdate('#template-wrapper', '#kl_wrapper');
-        elementUpdate('#usu-template-page', '#kl_wrapper');
-        // Remove content wrapper
-        if ($(iframeID).contents().find('#template-content').length > 0) {
-            $(iframeID).contents().find('#template-content').contents().unwrap();
-        }
-        if ($(iframeID).contents().find('#usu-template-wrap').length > 0) {
-            elementUpdate('#usu-template-wrap', '#kl_wrapper');
-            $(iframeID).contents().find('#kl_banner').prependTo($(iframeID).contents().find('#kl_wrapper'));
-        }
-        // Theme Classes 
-        elementUpdate('.generic', '.kl_generic');
-        elementUpdate('.bookmark', '.kl_bookmark');
-        elementUpdate('.apple', '.kl_apple');
-        elementUpdate('.box-left-aggie-blue', '.kl_box_left');
-        elementUpdate('.box-left-copper', '.kl_box_left_2');
-        elementUpdate('.box-left-silver', '.kl_box_left_3');
-        elementUpdate('.square-right-aggie-blue', '.kl_square_right');
-        elementUpdate('.square-right-copper', '.kl_square_right_2');
-        elementUpdate('.square-right-silver', '.kl_square_right_3');
-        elementUpdate('.rounded-inset-aggie-blue', '.kl_rounded_inset');
-        elementUpdate('.rounded-inset-copper', '.kl_rounded_inset_2');
-        elementUpdate('.rounded-inset-silver', '.kl_rounded_inset_3');
-        elementUpdate('.circle-left-aggie-blue', '.kl_circle_left');
-        elementUpdate('.circle-left-copper', '.kl_circle_left_2');
-        elementUpdate('.circle-left-silver', '.kl_circle_left_3');
-        elementUpdate('.horiz-nav-template', '.kl_fp_horizontal_nav');
-        elementUpdate('.panel-nav-template', '.kl_fp_panel_nav');
-        elementUpdate('.panel-nav-template', '.kl_fp_panel_nav');
-        elementUpdate('.emta', '.kl_emta');
-        clearAttribute('.usu-template-flex');
-        // Old Banners with multiple h2 tags
-        if($(iframeID).contents().find('#kl_banner h2').length > 1){
-            if ($(iframeID).contents().find('#home-left-num').length > 0) {
-                updateContents = $(iframeID).contents().find('#home-left-num').html();
-                console.log(updateContents);
-                $(iframeID).contents().find('#home-left-num').replaceWith('<span id="kl_banner_left"><span class="kl_mod_text">' + updateContents + '</span></span>');
-            }
-            if ($(iframeID).contents().find('#home-right').length > 0) {
-                updateContents = $(iframeID).contents().find('#home-right').html();
-                console.log(updateContents);
-                $(iframeID).contents().find('#home-right').replaceWith('<span id="kl_banner_right">' + updateContents + '</span>');
-            }
-            if ($(iframeID).contents().find('#page-left').length > 0) {
-                updateContents = $(iframeID).contents().find('#page-left').html();
-                console.log(updateContents);
-                $(iframeID).contents().find('#page-left').replaceWith('<span id="kl_banner_left"><span class="kl_mod_text">' + updateContents + '</span></span>');
-            }
-            if ($(iframeID).contents().find('#page-right').length > 0) {
-                updateContents = $(iframeID).contents().find('#page-right').html();
-                console.log(updateContents);
-                $(iframeID).contents().find('#page-right').replaceWith('<span id="kl_banner_right">' + updateContents + '</span>');
-            }
-            updateContents = $(iframeID).contents().find('#kl_banner').html();
-            $(iframeID).contents().find('#kl_banner').html('<h2>' + updateContents + '</h2>');
-            $(iframeID).contents().find('#kl_banner_left').appendTo($(iframeID).contents().find('#kl_banner h2'));
-            $(iframeID).contents().find('.kl_mod_text').appendTo($(iframeID).contents().find('#kl_banner_left'));
-            $(iframeID).contents().find('.kl_mod_num').appendTo($(iframeID).contents().find('#kl_banner_left'));
-            $(iframeID).contents().find('#kl_banner_right').appendTo($(iframeID).contents().find('#kl_banner h2'));
-            $(iframeID).contents().find('#kl_banner br').remove();
-        }
-        // Banner
-        elementUpdate('#module-page-banner', '#kl_banner');
-        elementUpdate('#module-page-banner', '#kl_banner');
-        elementUpdate('#banner-left', '#kl_banner_left');
-        elementUpdate('#page-left', '#kl_banner_left');
-        elementUpdate('.mod-text', '.kl_mod_text');
-        elementUpdate('.mod-num', '.kl_mod_num');
-        elementUpdate('.emta-badge', '.kl_mod_num');
-        if ($(iframeID).contents().find('#usu-template-banner-middle').length > 0) {
-            $(iframeID).contents().find('#usu-template-banner-middle').remove();
-        }
-        clearAttribute('.banner_image');
-        elementUpdate('.banner-right', '#kl_banner_right');
-        elementUpdate('#page-right', '#kl_banner_right');
-        elementUpdate('#banner-bottom', '#kl_banner_bottom');
-        elementUpdate('#emta-title', '#kl_banner_bottom');
-        elementUpdate('#description', '#kl_description');
-        // EMTA Banners
-        if ($(iframeID).contents().find('#kl_banner_bottom h2').length > 0) {
-            updateContents = $(iframeID).contents().find('#kl_banner_bottom h2').html();
-            $(iframeID).contents().find('#kl_banner_bottom h2').replaceWith('<h3>' + updateContents + '</h3>');
-        }
-        if ($(iframeID).contents().find('#kl_banner').hasClass('kl_emta')) {
-            $(iframeID).contents().find('#kl_banner').removeClass('kl_emta');
-            $(iframeID).contents().find('#kl_wrapper').addClass('kl_emta');
-        }
-        if ($(iframeID).contents().find('#kl_banner_bottom').length > 0) {
-            $(iframeID).contents().find('#kl_banner_bottom').appendTo($(iframeID).contents().find('#kl_banner'));
-            $(iframeID).contents().find('.kl_mod_text').appendTo($(iframeID).contents().find('#kl_banner_left'));
-            $(iframeID).contents().find('.kl_mod_num').appendTo($(iframeID).contents().find('#kl_banner_left'));
-            $(iframeID).contents().find('.kl_banner_right').appendTo($(iframeID).contents().find('#kl_banner_left'));
-        }
-        // Update old Icons
-        updateNavIcons('usu-template-nav-start', 'icon-forward');
-        updateNavIcons('usu-template-nav-syllabus', 'icon-syllabus');
-        updateNavIcons('usu-template-nav-modules', 'icon-module');
-        updateNavIcons('usu-template-nav-resources', 'icon-add');
-        
-        // Template Sections
-        elementUpdate('.introduction', '#kl_introduction');
-        elementUpdate('.objectives', '#kl_objectives');
-        elementUpdate('.readings', '#kl_readings');
-        elementUpdate('.lectures', '#kl_lectures');
-        elementUpdate('.activities', '#kl_activities');
-        elementUpdate('.assignments', '#kl_assignments');
-        // Modal
-        elementUpdate('.customModalToggler', '.kl_modal_toggler');
-        elementUpdate('#customModal', '#kl_modal');
-        elementUpdate('.custom-modal', '.kl_modal');
-        elementUpdate('.modalTitle', '.kl_modal_title');
-        // Tooltip
-        elementUpdate('.tooltipTrigger', '.kl_tooltip_trigger');
-        elementUpdate('.tooltipText', '.kl_tooltip_text');
-        $(iframeID).contents().find('.kl_tooltip_text').each(function (index) {
-            var tipNum = index + 1;
-            elementUpdate('#tooltip' + tipNum, '#kl_tooltip_' + tipNum);
-            elementUpdate('.tooltip' + tipNum, '.kl_tooltip_' + tipNum);
-        });
-        // Popover
-        elementUpdate('.popoverTrigger', '.kl_popover_trigger');
-        elementUpdate('.popoverContent', '.kl_popover_content');
-        $(iframeID).contents().find('.kl_popover_content').each(function (index) {
-            var tipNum = index + 1;
-            elementUpdate('#Popover' + tipNum, '#kl_popover_' + tipNum);
-            elementUpdate('.Popover' + tipNum, '.kl_popover_' + tipNum);
-        });
-        // Syllabus Sections
-        // <div id="template-content" class="syllabus-content" style="margin: 0;">
-
-        // INFORMATION
-        elementUpdate('.information', '#kl_syllabus_information');
-        elementUpdate('.instructures', '.kl_syllabus_instructors');
-        elementUpdate('.additionalInstructior', '.kl_syllabus_additional_instructor');
-        elementUpdate('.teachingAssistants', '.kl_syllabus_teaching_assistant');
-        elementUpdate('.additionalTA', '.kl_syllabus_additional_teaching_assistant');
-        elementUpdate('.course_description', '.kl_syllabus_course_description');
-        // OUTCOMES
-        elementUpdate('.outcomes', '#kl_syllabus_outcomes');
-        elementUpdate('.learning_outcomes', '.kl_syllabus_learning_outcomes');
-        clearAttribute('#outcomeList');
-        // RESOURCES
-        elementUpdate('.resources', '#kl_syllabus_resources');
-        elementUpdate('.canvas', '.kl_syllabus_canvas_info');
-        elementUpdate('.software', '.kl_syllabus_software');
-        elementUpdate('.textbook-readings', '.kl_syllabus_textbook_readings');
-        elementUpdate('.videos', '.kl_syllabus_videos');
-        // ACTIVITIES
-        elementUpdate('.activities', '#kl_syllabus_activities');
-        elementUpdate('.readings_', '.kl_syllabus_activities_readings');
-        elementUpdate('.videos', '.kl_syllabus_activities_videos');
-        elementUpdate('.labs', '.kl_syllabus_labs');
-        elementUpdate('.discussions', '.kl_syllabus_discussions');
-        elementUpdate('.assignments_', '.kl_syllabus_assignments');
-        elementUpdate('.quizzes', '.kl_syllabus_quizzes');
-        elementUpdate('.exams', '.kl_syllabus_exams');
-        // POLICIES
-        elementUpdate('.policies', '#kl_syllabus_policies');
-        elementUpdate('.instructor_feedback', '.kl_syllabus_instructor_feedback');
-        elementUpdate('.student_feedback', '.kl_syllabus_student_feedback');
-        elementUpdate('.syllabus_changes', '.kl_syllabus_syllabus_changes');
-        elementUpdate('.submitting_files', '.kl_syllabus_submitting_files');
-        elementUpdate('.course_fees', '.kl_syllabus_course_fees');
-        elementUpdate('.late_work', '.kl_syllabus_late_work');
-        // GRADES
-        elementUpdate('.grades_', '#kl_syllabus_grades');
-        elementUpdate('.course_assignments', '.kl_syllabus_course_assignments');
-        elementUpdate('.grade_scheme', '.kl_syllabus_grade_scheme');
-        elementUpdate('#canvas_grade_scheme', '#kl_syllabus_canvas_grade_scheme');
-        // UNIVERSITY POLICIES
-        elementUpdate('.universityPolicies', '#kl_university_policies');
-    }
-    function updateProgressBar() {
-        var labelValue = '',
-            labelHeight = '',
-            barWidth = '',
-            newProgressBar = '',
-            labelOutside = false;
-        if ($(iframeID).contents().find('.custom-progressbar').length > 0) {
-            barWidth = Math.round(100 * parseFloat($(iframeID).contents().find('.ui-progressbar-value').css('width')) / parseFloat($(iframeID).contents().find('.ui-progressbar-value').parent().css('width')));
-            if ($(iframeID).contents().find('.pbHeightMicro').length > 0) {
-                labelHeight = '5px';
-                labelOutside = true;
-            } else if ($(iframeID).contents().find('.pbHeightSmall').length > 0) {
-                labelHeight = '10px';
-                labelOutside = true;
-            } else if ($(iframeID).contents().find('.pbHeightMed').length > 0) {
-                labelHeight = '15px';
-                labelOutside = true;
-            } else {
-                labelHeight = '20px';
-            }
-            if ($(iframeID).contents().find('.pblabel').length > 0) {
-                labelValue = $(iframeID).contents().find('.pblabel').html();
-            }
-            if (labelOutside === true) {
-                newProgressBar = '<div id="kl_progress_bar">' +
-                    '    <div class="kl_progress_bar_wrapper" style="width: 99%; overflow: hidden; background: #f2f2f2; border: #D1D1D1 1px solid;">' +
-                    '        <div class="kl_progress_bar_value kl_progress_bar_0_value" style="width: ' + barWidth + '%; background: #003366; text-align: right; height: ' + labelHeight + '; float: left;">' +
-                    '            <div class="kl_progress_bar_label kl_progress_bar_0_label" style="color: #fff;">&nbsp;</div>' +
-                    '        </div>' +
-                    '    </div>' +
-                    '    <div class="kl_progress_bar_wrapper_outside_labels" style="width: 99%; overflow: hidden;">' +
-                    '        <div class="kl_progress_bar_value kl_progress_bar_0_value" style="width: ' + barWidth + '%; text-align: right; height: 20px; float: left; background-position: initial initial; background-repeat: initial initial;">' +
-                    '            <div class="kl_progress_bar_label kl_progress_bar_0_label" style="color: #000000;">' + labelValue + '</div>' +
-                    '        </div>' +
-                    '    </div>' +
-                    '</div>';
-                $(iframeID).contents().find('.custom-progressbar').replaceWith(newProgressBar);
-            } else {
-                newProgressBar = '<div id="kl_progress_bar">' +
-                    '    <div class="kl_progress_bar_wrapper" style="width: 99%; overflow: hidden; background: #f2f2f2; border: #D1D1D1 1px solid;">' +
-                    '        <div class="kl_progress_bar_value kl_progress_bar_0_value" style="width: ' + barWidth + '%; background-color: #003366; text-align: right; height: ' + labelHeight + '; float: left;">' +
-                    '        <div class="kl_progress_bar_label kl_progress_bar_0_label" style="color: #fff;">' + labelValue + '</div>' +
-                    '    </div>' +
-                    '</div>';
-                $(iframeID).contents().find('.custom-progressbar').replaceWith(newProgressBar);
-            }
-        }
-    }
-    function updateAccordion() {
-        if ($(iframeID).contents().find('.custom-accordion h3').length > 0) {
-            $(iframeID).contents().find('.custom-accordion h3').each(function () {
-                var accordionTitle = $(this).html();
-                $(this).replaceWith('<h4>' + accordionTitle + '</h4>');
-            });
-        }
-        if ($(iframeID).contents().find('.custom-accordion-wrapper').length > 0) {
-            $(iframeID).contents().find('.custom-accordion-wrapper').attr('id', 'Custom_Accordion');
-            $(iframeID).contents().find('.custom-accordion h4 a').contents().unwrap();
-            elementUpdate('.custom-accordion-wrapper', '.kl_custom_accordion_wrapper');
-        }
-        if ($(iframeID).contents().find('.custom-accordion').length > 0) {
-            $(iframeID).contents().find('.custom-accordion h4 a').contents().unwrap();
-            $(iframeID).contents().find('.custom-accordion').attr('id', 'Custom_Accordion');
-        }
-        elementUpdate('.custom-accordion', '.kl_custom_accordion', '');
-    }
-    function updateTabs() {
-        if ($(iframeID).contents().find('.custom-tabs').length > 0) {
-            $(iframeID).contents().find('.custom-tabs').attr('id', 'Custom_Tabs');
-            $(iframeID).contents().find('.tab-list li').each(function (index) {
-                var connectedSection = $(this).attr('class'),
-                    tabTitle = $(this).text();
-                $(iframeID).contents().find('#' + connectedSection).before('<h4 class="kl_panel_' + index + '">' + tabTitle + '</h4>');
-                $(iframeID).contents().find('#' + connectedSection).attr('class', 'kl_tab_content kl_panel_' + index).removeAttr('id');
-            });
-            elementUpdate('.custom-tabs', '.kl_tabbed_section');
-            $(iframeID).contents().find('.tab-list').remove();
-        }
-    }
-
-    function updateQuickCheck() {
-        var i, numAnswers;
-        elementUpdate('#quickCheckOne', '#kl_quick_check_one');
-        elementUpdate('.quickCheckOneContent', '.kl_quick_check_one_content', '');
-        elementUpdate('#quickCheckTwo', '#kl_quick_check_two');
-        elementUpdate('.quickCheckTwoContent', '.kl_quick_check_two_content', '');
-        elementUpdate('.quickCheck', '.kl_quick_check', '');
-        elementUpdate('.quickCheckOneContent', '', '');
-        elementUpdate('.answers', '', '');
-        if ($(iframeID).contents().find('.answerWrapper').length > 0) {
-            numAnswers = $(iframeID).contents().find('.answerWrapper').length;
-            for (i = 0; i < numAnswers; i++) {
-                elementUpdate('.answer-' + i, '.kl_quick_check_answer_' + i, '');
-            }
-        }
-        elementUpdate('.answerWrapper', '.kl_quick_check_answer_wrapper', '');
-        elementUpdate('.answers', '.kl_quick_check_answers', '');
-        elementUpdate('.answer', '.kl_quick_check_answer', '');
-        elementUpdate('.response', '.kl_quick_check_response', '');
-        elementUpdate('.correctAnswer', '.kl_quick_check_correct_answer', '');
-
-    }
-    function identifyImportedContent() {
-         // Identify theme
-        currentPagesThemeCheck();
-        // Clear sections area and identify new sections
-        $('.kl_sections_list').empty();
-        $('.kl_template_sections_list input').each(function () {
-            $(this).prop('checked', false);
-        });
-        identifySections();
-        // Clear accordion/tabs panels and identify new
-        $('#kl_accordion_panels').empty();
-        getAccPanels();
-        $('#kl_tab_panels').empty();
-        getTabPanels();
-        // Update Navigation
-        updateNavItems();
-        // Remove and check progress bar
-        $('input[value=kl_progress_bar]').parents('li').remove();
-        $('.kl_progress_bar_addition_section').remove();
-        $('.kl_progress_bar_add').show();
-        $('#kl_progress_bar_controls').hide();
-        identifyProgressBar();
-        // Check quick checks
-        identifyQuickChecks();
-        if ($(iframeID).contents().find('#kl_social_media').length > 0) {
-            socialMediaReady();
-        }
-        identifyModuleList();
-    }
-    function updateContentCheck() {
-        if ($(iframeID).contents().find('#usu-template-banner').length > 0 || $(iframeID).contents().find('#template-wrapper').length > 0 ||  $(iframeID).contents().find('#usu-template-front').length > 0) {
-            var updateHtml = '<div class="kl_update_tools_wrapper"><a href="#" style="width: 216px;" class="btn btn-danger kl_update_tools kl_margin_bottom" data-tooltip="top" ' +
-                'title="Update code created with previous versions of these tools"><i class="fa fa-wrench"></i> Update Code</a>' +
-                '<div class="kl_instructions">This content was created using an older version of these tools. You will need to update the code before using the current version.</div>';
-            if ($('.kl_update_tools').length === 0) {
-                $('#kl_tools').prepend(updateHtml);
-                $('.kl_update_tools').unbind("click").click(function (e) {
-                    e.preventDefault();
-                    updateWrapper();
-                    updateCustomCss();
-                    updateProgressBar();
-                    updateAccordion();
-                    updateQuickCheck();
-                    updateTabs();
-                    if ($('.kl_update_success').length === 0) {
-                        $('#kl_tools').prepend('<div class="kl_success kl_update_success" style="display:none;"><i class="fa fa-spinner fa-spin"></i> Updating Code</div>');
-                    }
-                    $('.kl_update_success').slideDown();
-                    $('.kl_update_tools').slideUp();
-                    $('.kl_update_tools_wrapper .kl_instructions').hide();
-                    $('#kl_tools_accordion').show();
-                    $('.kl_view_options').show();
-                    $('#kl_tools .btn-mini').show();
-                    setTimeout(function () {
-                        // setupMainTools();
-                        $('.kl_update_tools_wrapper').hide();
-                        $('.kl_update_success').slideUp();
-                        updateContentCheck();
-                        identifyImportedContent();
-                    }, 2000);
-                });
-            } else {
-                $('.kl_update_success').hide();
-                $('.kl_update_tools').show();
-                $('.kl_update_tools_wrapper').show();
-                $('.kl_update_tools_wrapper .kl_instructions').show();
-            }
-            $('#kl_tools .btn-mini').hide();
-            $('#kl_tools_accordion').hide();
-            $('.kl_view_options').hide();
-        }
-    }
-
-/////////////////////////////////////////////////////////////
 //  API FUNCTIONS                                          //
 ///////////////////////////////////////////////////////////// 
 
@@ -5609,7 +5471,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             $(this).parents('li').addClass('kl_loading').prepend('<i class="fa fa-spinner fa-spin"></i>');
             linkHref = $(this).attr('href').split('/pages/');
             contentUrl = linkHref[1];
-            $.post(klToolsVariables.klApiToolsPath + 'getPage.php', { courseID: coursenum, pageUrl: contentUrl })
+            $.post(klApiToolsPath + 'getPage.php', { courseID: coursenum, pageUrl: contentUrl })
                 .done(function (data) {
                     $(iframeID).contents().find('body').html(data);
                     $('.kl_loading i').remove();
@@ -5622,13 +5484,13 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
     }
     function checkPageTemplates() {
         $('#kl_course_template_pages').html('<i class="fa fa-spinner fa-spin"></i> Checking for template pages');
-        $.post(klToolsVariables.klApiToolsPath + 'checkTemplates.php', { courseID: coursenum })
+        $.post(klApiToolsPath + 'checkTemplates.php', { courseID: coursenum })
             .done(function (data) {
                 $('#kl_course_template_pages').html(data);
                 $('.kl_import_primary_template').unbind("click").click(function (e) {
                     e.preventDefault();
                     $('.kl_import_primary_template i').attr('class', 'fa fa-spinner fa-spin');
-                    $.post(klToolsVariables.klApiToolsPath + 'getPage.php', { courseID: coursenum, pageUrl: 'primary-template' })
+                    $.post(klApiToolsPath + 'getPage.php', { courseID: coursenum, pageUrl: 'primary-template' })
                         .done(function (data) {
                             $(iframeID).contents().find('body').html(data);
                             $('.kl_import_primary_template i').attr('class', 'fa fa-clipboard');
@@ -5640,7 +5502,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
                 $('.kl_import_secondary_template').unbind("click").click(function (e) {
                     e.preventDefault();
                     $('.kl_import_secondary_template i').attr('class', 'fa fa-spinner fa-spin');
-                    $.post(klToolsVariables.klApiToolsPath + 'getPage.php', { courseID: coursenum, pageUrl: 'secondary-template' })
+                    $.post(klApiToolsPath + 'getPage.php', { courseID: coursenum, pageUrl: 'secondary-template' })
                         .done(function (data) {
                             $(iframeID).contents().find('body').html(data);
                             $('.kl_import_secondary_template i').attr('class', 'fa fa-clipboard');
@@ -5672,7 +5534,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         } else {
             pageTitleUrl = pageTitleUrl[1];
         }
-        $.post(klToolsVariables.klApiToolsPath + 'getPage.php', { courseID: sourceCourseNum, pageUrl: pageTitleUrl })
+        $.post(klApiToolsPath + 'getPage.php', { courseID: sourceCourseNum, pageUrl: pageTitleUrl })
             .done(function (data) {
                 var re = new RegExp(sourceCourseNum, 'g');
                 data = data.replace(re, coursenum);
@@ -5712,8 +5574,6 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             '   </div>' +
             '   <a href="#" class="btn btn-mini kl_mce_preview" rel="">Preview</a>' +
             '</div>',
-            addStyleButton = ' <a href="#" class="btn btn-mini kl_add_style_to_iframe" data-tooltip="bottom" title="Click this if the css styles are not showing up in the editor">' +
-            '<i class="fa fa-magic"></i> Add Style to Editor</a>',
             removeEmptyButton = '<a class="btn btn-mini kl_remove_empty" href="#" data-tooltip="left" title="This button will clean up the page contents by removing any empty elements.' +
             '<p>This is especially useful when using the <i class=\'icon-collection-save\'></i> feature.</p>"><i class="icon-trash"></i> Clear Empty Elements</a>',
             tabNavigation = '<ul>' +
@@ -5732,7 +5592,7 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
             $('#kl_tools_wrapper').append('<div id="kl_tools" />').prepend(tabNavigation);
             $('#kl_tools_wrapper').tabs({active: 1});
         }
-        $('#kl_tools').html(visualBlocksButtons + customAccordionDiv + addStyleButton + removeEmptyButton);
+        $('#kl_tools').html(visualBlocksButtons + customAccordionDiv + removeEmptyButton);
         $('#toolsTrigger').click(function (e) {
             e.preventDefault();
             $('a:contains("HTML Editor")').get(0).scrollIntoView();
@@ -5798,26 +5658,24 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         moduleListTool();
         socialMediaTool();
         // Other tools
-        //E. Scull: Disabling accessibility checker in Firefox due to risk of data loss due to Firefox's handling of the CSS3 filter 
-        //Rrenders a gray screen with no simple way to remove it, short of using browser's dev tools.
-        if(navigator.userAgent.toLowerCase().indexOf('firefox') == -1) 
-            accessibilityTools();
+        accessibilityTools();
         accordionTabsTool();
         advancedListsTool();
         bordersAndSpacingTool();
         customButtons();
+        colors();
         customHighlights();
         imageTools();
         popupContent();
         progressBar();
         quickCheck();
         customTablesSection();
+        additionalAccordionSections();
         bloomsTaxonomy('objectives');
         contentIcons();
         aboutCustomTools();
         showPageTitle();
         // activate the accordion
-
         initializeToolsAccordion();
         delayedLoad();
         // Load JavaScript file that will clean up old format
@@ -5830,6 +5688,8 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
         importPageContentThisCourse();
         setTimeout(function () {
             bindAPIImportsTriggers();
+            // Load additional content from canvasGlobal.js if needed
+            afterToolLaunch();
         }, 300);
     }
     // Setup Syllabus Tools
@@ -5894,11 +5754,6 @@ klToolsArrays, vendor_legacy_normal_contrast,  */
                 });
             }
         }
-        $('.kl_add_style_to_iframe').unbind("click").click(function (e) {
-            e.preventDefault();
-            addStyletoIframe();
-            $('a:contains("HTML Editor")').get(0).scrollIntoView();
-        });
         // Make some changes before page is saved
         $('.submit').click(function () {
             // Handle when a box was unchecked but the remove button wasn't clicked

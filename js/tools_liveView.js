@@ -1,5 +1,6 @@
 /*jslint browser: true, sloppy: false, eqeq: false, vars: false, maxerr: 50, indent: 4, plusplus: true */
-// global $, jQuery, alert, coursenum, console, klToolsVariables, klToolsPath, klToolsArrays, $context_module_item 
+/*global $, jQuery, alert, coursenum, console, klToolsVariables, klToolsPath, klToolsArrays, $context_module_item,
+    additionalLiveView, klFontAwesomePath,  */
 
 // These tools were designed to facilitate rapid course development in the Canvas LMS
 // Copyright (C) 2014  Kenneth Larsen - Center for Innovative Design and Instruction
@@ -17,9 +18,35 @@
 // http://www.gnu.org/licenses/agpl-3.0.html
 
 // This page contains code for the live view of custom tools
+
+
+// FRONT PAGE MODULE DETAILS
+//// Adaptation of Canvas function to populate due dates and points
+function kl_gatherModuleDetails() {
+    'use strict';
+    $.ajaxJSON('/courses/' + coursenum + '/modules/items/assignment_info', 'GET', {}, function (data) {
+        $.each(data, function (id, info) {
+            $context_module_item = $("#context_module_item_" + id);
+            data = {};
+            if (info.points_possible !== null) {
+                data.points_possible_display = info.points_possible + ' pts';
+                // data.points_possible_display = I18n.t('points_possible_short', '%{points} pts', { 'points': "" + info.points_possible});
+            }
+            if (info.due_date !== null) {
+                data.due_date_display = $.dateString(info.due_date);
+            } else if (info.vdd_tooltip !== null) {
+                info['vdd_tooltip']['link_href'] = $context_module_item.find('a.title').attr('href');
+                $context_module_item.find('.due_date_display').html(vddTooltipView(info.vdd_tooltip));
+            }
+            $context_module_item.fillTemplateData({data: data, htmlValues: ['points_possible_display']});
+        });
+        vddTooltip();
+    });
+}
+// Gather data on student module progress
 function kl_update_progress() {
     'use strict';
-    if ($('.edit-wiki').length === 0) {
+    if ($('.edit-wiki').length === 0 && $('#wiki_page_revisions').length === 0) {
         var current_user_id = $("#identity .user_id").text(),
             url = '/courses/' + coursenum + '/modules/progressions?user_id=' + current_user_id;
         $.ajaxJSON(url, 'GET', {}, function (data) {
@@ -51,30 +78,6 @@ function kl_update_progress() {
     }
 }
 
-// FRONT PAGE MODULE DETAILS
-//// Adaptation of Canvas function to populate due dates and points
-function kl_gatherModuleDetails() {
-    'use strict';
-    $.ajaxJSON('/courses/' + coursenum + '/modules/items/assignment_info', 'GET', {}, function (data) {
-        $.each(data, function (id, info) {
-            $context_module_item = $("#context_module_item_" + id);
-            var data = {};
-            if (info["points_possible"] != null) {
-                data["points_possible_display"] = info["points_possible"] + ' pts';
-                // data["points_possible_display"] = I18n.t('points_possible_short', '%{points} pts', { 'points': "" + info["points_possible"]});
-            }
-            if (info["due_date"] != null) {
-                data["due_date_display"] = $.dateString(info["due_date"]);
-            } else if (info["vdd_tooltip"] != null) {
-                info['vdd_tooltip']['link_href'] = $context_module_item.find('a.title').attr('href');
-                $context_module_item.find('.due_date_display').html(vddTooltipView(info["vdd_tooltip"]));
-            }
-            $context_module_item.fillTemplateData({data: data, htmlValues: ['points_possible_display']});
-        });
-        vddTooltip();
-    });
-}
-
 // Determine whether black or white text offers best contrast
 function getContrastYIQ(hexcolor) {
     'use strict';
@@ -99,49 +102,27 @@ function rgb2hex(rgb) {
     return "#" + hex(rgb[1]) + hex(rgb[2]) + hex(rgb[3]);
 }
 
-$(function () {
+$(document).ready(function () {
     'use strict';
-    var anchor, studentName, activePanel, activeTab, icons, modalTitle, today;
+    var anchor, activePanel, activeTab, bgColor, bgHex, textColor, icons, modalTitle, today, currentTheme, appendStyle, maxWidth, klStudentName;
     // SHOW PAGES TITLE
-    if ($('.kl_show_title').length === 0) {
+    currentTheme = $('#kl_wrapper').attr('class');
+
+    console.log(currentTheme);
+    // console.log($.inArray(currentTheme, showPageTitleTemplates) !== -1);
+    if ($('.kl_show_title').length === 0 && $.inArray(currentTheme, klToolsVariables.showPageTitleTemplates) === -1) {
         if ($('#kl_banner h2').length > 0) {
-            $('h2.page-title').remove();
-        } else {
-            $('h2.page-title').hide();
+            $('h1.page-title').addClass('screenreader-only');
         }
     }
     // Full width images
     $('.kl_image_full_width').css('max-width', '100%');
     $('#kl_banner_image img').css('max-width', '100%').addClass('kl_image_full_width');
 
-
-    // STUDENT VERIFICATION FORM //
-    if ($("#kl_student_verification").length > 0 && $(".student-version").length > 0) {
-        $("#kl_student_verification").after('<p align="center" style="margin-top:20px;"><a href="#" class="icon-edit btn btn-success submitVerify">Click Here to Sign</a></p>');
-        $(".student-assignment-overview").hide();
-        $(".submit_assignment_link").hide();
-
-        $("#verificationSuccess").hide();
-        $("#verificationInstructions").hide();
-        $(".submitVerify").click(function (e) {
-            e.preventDefault();
-            // console.log("Clicked");
-            if ($("#submission_body").length > 0) {
-                $("#submission_body").text($("#kl_student_verification").text());
-            } else {
-                console.log("No Submission Field");
-            }
-            $("#submit_assignment").show();
-        });
-        if ($(".details:contains('Turned In!')").length > 0) {
-            $("#kl_student_verification").hide();
-            $(".submitVerify").hide();
-            $("#verificationSuccess").show();
-        }
-    }
-    if ($(".studentName").length > 0) {
-        studentName = $(".emphasize-name").text();
-        $(".studentName").html(studentName);
+    // Fill in students name
+    if ($(".kl_student_name").length > 0) {
+        klStudentName = $(".emphasize-name").text();
+        $(".kl_student_name").html(klStudentName);
     }
     // CUSTOM ACCORDION //
     if ($('.kl_custom_accordion').length > 0) {
@@ -166,16 +147,6 @@ $(function () {
         });
     }
     // CUSTOM TABS //
-    // Original Tabs
-    if ($('.custom-tabs').length > 0) {
-        if ($('.custom-tabs .current').length > 0) {
-            activeTab = $(".tab-list li.current").index();
-            $('.custom-tabs').tabs({active: activeTab});
-        } else {
-            $('.custom-tabs').tabs();
-        }
-    }
-    // Mobile Friendly Tabs
     if ($('.kl_tabbed_section').length > 0) {
         // console.log('Tabbed Section found');
         // turn h4s into li's to create navigation section
@@ -267,7 +238,7 @@ $(function () {
     }
 
 
-    // QUICK CHECK - NEW //
+    // QUICK CHECK //
     if ($(".kl_quick_check").length > 0) {
         // Hide next button
         $(".next").hide();
@@ -309,65 +280,63 @@ $(function () {
 
 
     // SYLLABUS NAVIGATION //
-    if ($("#course_syllabus #template-wrapper").length > 0 || $("#course_syllabus #kl_wrapper").length > 0 || $(".universityPolicies").length > 0 || $("#kl_university_policies").length > 0) {
-        if ($("#course_syllabus").length > 0 && $('#syllabus_nav').length === 0) {
-            $("#sidebar_content").append('<div id="kl_syllabus_nav"><h2>Syllabus Navigation</h2><ul id="kl_syllabus_nav_list" style="list-style-type:none;" /></div>');
-            $("#kl_syllabus_nav_list").html('');
-            $("#course_syllabus h3").each(function (index, value) {
-                var title = $(value).text(),
-                    anchorName = title.replace("&", "");
-                anchorName = anchorName.replace(/ /g, "_");
-                $(value).prepend('<a name="' + anchorName + '"></a>');
-                $("#kl_syllabus_nav_list").append('<li class="kl_' + anchorName + '_link"><a href="#' +
-                    anchorName + '" class="kl_syllabus_nav_link" rel="#kl_' + anchorName + '_sub">' + title +
-                    '</a></li><ul style="display:none;" id="kl_' + anchorName + '_sub" class="kl_sub_nav_list"></ul>');
-                $(value).parent('div').contents().find("h4").each(function (index, secondValue) {
-                    var subtitle = $(secondValue).text(),
-                        subAnchorName = subtitle.replace("&", "");
-                    subAnchorName = subAnchorName.replace(/ /g, "_");
-                    $(secondValue).prepend('<a name="kl_' + subAnchorName + '"></a>');
-                    $('#kl_' + anchorName + '_sub').append('<li class="kl_' + subAnchorName + 'Link"><a href="#kl_' + subAnchorName + '">' + subtitle + '</a></li>');
-                });
-            });
-            $(".universityPolicies h4").each(function () {
-                var subtitle = $(this).text(),
+    if (($("#kl_institutional_policies").length > 0 || $("#kl_wrapper").length > 0) && ($("#course_syllabus").length > 0 && $('#syllabus_nav').length === 0)) {
+        $("#sidebar_content").append('<div id="kl_syllabus_nav"><h2>Syllabus Navigation</h2><ul id="kl_syllabus_nav_list" style="list-style-type:none;" /></div>');
+        $("#kl_syllabus_nav_list").html('');
+        $("#course_syllabus h3").each(function (index, value) {
+            var title = $(value).text(),
+                anchorName = title.replace("&", "");
+            anchorName = anchorName.replace(/ /g, "_");
+            $(value).prepend('<a name="' + anchorName + '"></a>');
+            $("#kl_syllabus_nav_list").append('<li class="kl_' + anchorName + '_link"><a href="#' +
+                anchorName + '" class="kl_syllabus_nav_link" rel="#kl_' + anchorName + '_sub">' + title +
+                '</a></li><ul style="display:none;" id="kl_' + anchorName + '_sub" class="kl_sub_nav_list"></ul>');
+            $(value).parent('div').contents().find("h4").each(function (index, secondValue) {
+                var subtitle = $(secondValue).text(),
                     subAnchorName = subtitle.replace("&", "");
-                subAnchorName = subAnchorName.replace(/ /g, "");
-                $(this).prepend('<a name="' + subAnchorName + '"></a>');
-                $('#UNIVERSITYPOLICIESPROCEDURESSub').append('<li class="' + subAnchorName + 'Link"><a href="#' + subAnchorName + '">' + subtitle + '</a></li>');
+                subAnchorName = subAnchorName.replace(/ /g, "_");
+                $(secondValue).prepend('<a name="kl_' + subAnchorName + '"></a>');
+                $('#kl_' + anchorName + '_sub').append('<li class="kl_' + subAnchorName + 'Link"><a href="#kl_' + subAnchorName + '">' + subtitle + '</a></li>');
             });
-            $(".kl_syllabus_nav_link").each(function () {
-                var subNav = $(this).attr("rel");
-                if ($(subNav + " li").length > 0) {
-                    $(this).parent('li').addClass('icon-arrow-right');
-                } else {
-                    $(this).parent('li').addClass('no-icon');
-                }
-            });
-            $(".kl_syllabus_nav_link").click(function () {
-                $(".kl_sub_nav_list").slideUp();
-                $(".icon-arrow-down").addClass('icon-arrow-right').removeClass('icon-arrow-down');
-                var subNav = $(this).attr("rel");
-                if ($(subNav + " li").length > 0) {
-                    $(subNav).slideDown();
-                    $(this).parent('li').removeClass('icon-arrow-right').addClass('icon-arrow-down');
-                }
-            });
-            $(".kl_syllabus_nav_link").hover(
-                function () {
-                    var anchorName = $(this).attr("href");
-                    anchor = anchorName.replace("#", "");
-                    $('a[name=' + anchor + ']').parent('div').css('background', '#D5E2FF');
-                },
-                function () {
-                    ('a[name=' + anchor + ']').parent('div').css('background', '');
-                }
-            );
-            $("#kl_syllabus_nav_list a").click(function () {
-                $("#kl_syllabus_nav_list .active").removeClass("active");
-                $(this).addClass("active");
-            });
-        }
+        });
+        // $(".universityPolicies h4").each(function () {
+        //     var subtitle = $(this).text(),
+        //         subAnchorName = subtitle.replace("&", "");
+        //     subAnchorName = subAnchorName.replace(/ /g, "");
+        //     $(this).prepend('<a name="' + subAnchorName + '"></a>');
+        //     $('#UNIVERSITYPOLICIESPROCEDURESSub').append('<li class="' + subAnchorName + 'Link"><a href="#' + subAnchorName + '">' + subtitle + '</a></li>');
+        // });
+        $(".kl_syllabus_nav_link").each(function () {
+            var subNav = $(this).attr("rel");
+            if ($(subNav + " li").length > 0) {
+                $(this).parent('li').addClass('icon-mini-arrow-right');
+            } else {
+                $(this).parent('li').addClass('no-icon');
+            }
+        });
+        $(".kl_syllabus_nav_link").click(function () {
+            $(".kl_sub_nav_list").slideUp();
+            $(".icon-arrow-down").addClass('icon-mini-arrow-right').removeClass('icon-mini-arrow-down');
+            var subNav = $(this).attr("rel");
+            if ($(subNav + " li").length > 0) {
+                $(subNav).slideDown();
+                $(this).parent('li').removeClass('icon-mini-arrow-right').addClass('icon-mini-arrow-down');
+            }
+        });
+        $(".kl_syllabus_nav_link").hover(
+            function () {
+                var anchorName = $(this).attr("href");
+                anchor = anchorName.replace("#", "");
+                $('a[name=' + anchor + ']').parent('div').css('background', '#D5E2FF');
+            },
+            function () {
+                ('a[name=' + anchor + ']').parent('div').css('background', '');
+            }
+        );
+        $("#kl_syllabus_nav_list a").click(function () {
+            $("#kl_syllabus_nav_list .active").removeClass("active");
+            $(this).addClass("active");
+        });
     }
     // Moving syllabus assignment list up into syllabus
     if ($("#kl_syllabus_canvas_assignment_list #syllabus").length > 0) {
@@ -392,7 +361,7 @@ $(function () {
             }
         });
     }
-    if ($('#kl_modules .kl_current').length > 0 && $('.kl_modules_quick_links').length > 0) {
+    if ($('#kl_modules .kl_current').length > 0 && $('.kl_modules_quick_links').length > 0 && $('#wiki_page_revisions').length === 0) {
         $("#kl_modules").after('<div id="kl_modules_current_details" />');
         $('#kl_modules .kl_current').each(function () {
             var module_id = $(this).find('.kl_connected_module').attr('id');
@@ -408,19 +377,18 @@ $(function () {
                 kl_update_progress();
             });
         });
-
     }
-    if ($('.kl_modules_tabbed').length > 0) {
-        var bgColor = '',
-            bgHex = '0F2439',
-            textColor = 'FFF';
+    if ($('.kl_modules_tabbed').length > 0 && $('#wiki_page_revisions').length === 0) {
+        bgColor = '';
+        bgHex = '0F2439';
+        textColor = 'FFF';
         $("head").append($("<link/>", { rel: "stylesheet", href: klFontAwesomePath, type: 'text/css'}));
         $('#kl_modules').before('<div id="kl_gathering_data" class="alert alert-info"><i class="fa fa-spinner fa-spin"></i> Gathering Progress Data</div>');
         // Check theme color and set tab highlight to match
         if ($('#kl_banner').length > 0) {
             bgColor = $('#kl_banner').css('background-color');
         }
-        if ($('#kl_banner').length === 0 && $('#kl_navigation').length > 0 || $('#kl_navigation').length > 0 && bgColor === 'rgba(0, 0, 0, 0)') {
+        if (($('#kl_banner').length === 0 && $('#kl_navigation').length > 0) || ($('#kl_navigation').length > 0 && bgColor === 'rgba(0, 0, 0, 0)')) {
             bgColor = $('#kl_navigation').css('background-color');
         }
         if (bgColor !== '' && bgColor !== 'rgba(0, 0, 0, 0)') {
@@ -430,9 +398,9 @@ $(function () {
             textColor = getContrast50(bgHex);
         }
         // Write styles to match template to the page head
-        var appendStyle = '<style>' +
-            '   #kl_wrapper #kl_modules .ui-tabs-active {background: #' + bgHex + '; }' +
-            '   #kl_wrapper #kl_modules ul li.ui-tabs-active a { color: ' + textColor + '}' +
+        appendStyle = '<style>' +
+            '   #kl_wrapper #kl_modules .ui-tabs-active {background: #' + bgHex + ' !important; }' +
+            '   #kl_wrapper #kl_modules ul li.ui-tabs-active a { color: ' + textColor + ' !important}' +
             '   #kl_wrapper #kl_modules .ui-tabs-nav li.ui-tabs-active[class*=icon-]:before,' +
             '   #kl_wrapper #kl_modules .ui-tabs-nav li.ui-tabs-active[class^=icon-]:before,' +
             '   #kl_wrapper #kl_modules .ui-tabs-nav li.ui-tabs-active[class*=fa-]:before,' +
@@ -471,14 +439,14 @@ $(function () {
             $('#kl_modules').tabs();
         }
         // Make tabs equal in width
-        var maxWidth = 0;
-        $('#kl_modules .ui-tabs-nav li a').each(function(){
-           if ($(this).width() > maxWidth){
-             maxWidth = $(this).width();
-           }
+        maxWidth = 0;
+        $('#kl_modules .ui-tabs-nav li a').each(function () {
+            if ($(this).width() > maxWidth) {
+                maxWidth = $(this).width();
+            }
         });
-        $('#kl_modules .ui-tabs-nav li a').each(function(){
-            $(this).width(maxWidth+3);
+        $('#kl_modules .ui-tabs-nav li a').each(function () {
+            $(this).width(maxWidth + 3);
         });
 
     }
@@ -486,5 +454,5 @@ $(function () {
     if (($('a:contains("Edit Homepage")').length > 0 || $('a:contains("View Course Stream")').length > 0) && $('#kl_banner_image').length > 0) {
         $('#kl_banner_image').addClass('kl_banner_image_front');
     }
-
-})();
+    additionalLiveView();
+});
