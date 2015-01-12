@@ -44,11 +44,11 @@ var iframeID,
     // To utilize the features that pull from the Canvas api you will need the hosted php files put their path here
     klApiToolsPath = klToolsPath + 'api/',
     // Path to institutional css file
-    globalCSSFile = klToolsPath + 'canvasGlobal.css', // E. Scull, modified to use our url
+    klGlobalCSSFile = klToolsPath + 'canvasGlobal.css', // E. Scull, modified to use our url
     klFontAwesomePath = '//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css',
     coursenum;
 
-function getCourseNum() {
+function klGetCourseNum() {
     'use strict';
     var matches, killspot;
     // Parse Course Number - It is stored in the variable "coursenum"
@@ -62,23 +62,21 @@ function getCourseNum() {
         }
     }
 }
-getCourseNum();
+klGetCourseNum();
 
 
 // Pull in custom variables
 $.getScript(klToolsVariablesFile, function () {
     'use strict';
     console.log("tools_variables.js loaded");
-});
-// Additional Customization
-$.getScript(klToolsAdditionalCustomizationFile, function () {
-    'use strict';
-    console.log("additional_customization.js loaded");
-});
-// Run code to initialize tools
-$.getScript(klToolsPath + "js/master_controls.js", function () {
-    'use strict';
-    console.log("master_controls.js loaded");
+    // Additional Customization
+    $.getScript(klToolsAdditionalCustomizationFile, function () {
+        console.log("additional_customization.js loaded");
+        // Run code to initialize tools
+        $.getScript(klToolsPath + "js/master_controls.js", function () {
+            console.log("master_controls.js loaded");
+        });
+    });
 });
 
 ////////////////////////////////////////////////////
