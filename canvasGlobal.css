@@ -1461,8 +1461,9 @@ Notes:
 }
 
 /* adjust formatting of .ui-helper-reset and .ui-widget so that accordion/tab font styles are the same as other page text.*/ 
-.ui-helper-reset,
-.ui-widget {
+#kl_wrapper .ui-widget-content,
+#kl_wrapper .ui-helper-reset,
+#kl_wrapper .ui-widget {
 	font-size: inherit; /* was 100% */
 	line-height: inherit; /* was 1.3em */
 }
