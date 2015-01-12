@@ -1525,11 +1525,6 @@ Be on alert for uninteded layout breakage.
  .pages.show.revisions .show-content { float:none; }
 
 
-/* Hide page title by default, preventing blinking on page load when using IU Tools. This means it must be added to the page manually. */
-h1.page-title {
- 	display:none;
- }
-
 /* Hide all popover h4 tags, since their text is pulled into the popover title by the JS. The JS looks to attempt to .remove() the h4, but it doesn't seem to work.  */
 .popover-content h4 {
 	display:none; 
