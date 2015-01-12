@@ -1446,7 +1446,8 @@ Notes:
 #kl_wrapper .ui-progressbar .ui-widget-header, 
 #kl_wrapper .ui-widget-header .ui-state-active, 
 #kl_wrapper .ui-widget-header .ui-progressbar .ui-widget-header, 
-#kl_wrapper .ui-progressbar .ui-widget-header .ui-widget-header {
+#kl_wrapper .ui-progressbar .ui-widget-header .ui-widget-header,
+#kl_wrapper h4.ui-accordion-header-active {
 	border: 1px solid #8C7EA6;
 	background: #8C7EA6;
 	background-color: #8C7EA6;
@@ -1524,12 +1525,11 @@ Be on alert for uninteded layout breakage.
 
 
 /* Hide page title by default, preventing blinking on page load when using IU Tools. This means it must be added to the page manually. */
-h2.page-title {
+h1.page-title {
  	display:none;
  }
 
 /* Hide all popover h4 tags, since their text is pulled into the popover title by the JS. The JS looks to attempt to .remove() the h4, but it doesn't seem to work.  */
-
 .popover-content h4 {
 	display:none; 
 } 
